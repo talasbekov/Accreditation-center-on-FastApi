@@ -1,0 +1,65 @@
+#version: '3'
+#
+#services:
+#  accreditation-center:
+#    platform: linux/amd64
+#    command: bash -c "uvicorn main:app --host 0.0.0.0 --port 8003 --log-config log.ini --workers ${NUMBER_OF_WORKERS}"
+#    build: .
+#    container_name: accreditation-center
+#    restart: always
+#    ports:
+#      - "8003:8003"
+#    volumes:
+#      - .:/app
+#    network_mode: "postgre"
+#    deploy:
+#      resources:
+#        limits:
+#          memory: 4g
+
+version: '3'
+
+services:
+
+  postgres:
+    image: postgres:15.1-alpine
+    container_name: postgresql-ac
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./.data:/var/lib/postgresql/data
+    networks:
+      - backend-dev
+
+  accreditation-center:
+    platform: linux/amd64
+    command: bash -c "ruff check . --ignore E712,E711 --exclude ./alembic,__init__.py && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --log-config log.ini --workers ${NUMBER_OF_WORKERS}"
+    build: .
+    container_name: accreditation-center
+    restart: always
+    ports:
+        - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/.venv
+    networks:
+      - backend-dev
+    depends_on:
+        postgres:
+          condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+
+networks:
+  backend-dev:
+      driver: bridge

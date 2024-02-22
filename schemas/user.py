@@ -1,0 +1,26 @@
+from datetime import datetime
+from typing import Optional
+from pydantic import EmailStr
+
+from schemas import ReadNamedModel
+
+
+class UserBase(ReadNamedModel):
+    email: Optional[EmailStr]
+    name: Optional[str]
+    admin: bool = False
+    iin: int
+    last_signed_at: datetime
+    login_count: Optional[int]
+
+
+class UserCreate(UserBase):
+    password: str
+
+
+class UserUpdate(UserBase):
+    password: Optional[str] = None
+
+
+class UserRead(UserBase):
+    pass

@@ -13,5 +13,5 @@ class Event(NamedModel):
 	date_end = Column(Date)
 	city_code = Column(String(20))
 
-	requests = relationship("Request", backref="event")
+	requests = relationship("Request", back_populates="events")
 	users = relationship("User", secondary=user_event_association, back_populates="events")

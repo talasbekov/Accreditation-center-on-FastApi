@@ -10,7 +10,7 @@ class UserBase(ReadNamedModel):
     name: Optional[str]
     admin: bool = False
     iin: int
-    last_signed_at: datetime
+    last_signed_at: Optional[datetime]
     login_count: Optional[int]
 
 

@@ -6,9 +6,8 @@ from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 
 from core import get_db
-from models import City
 
-from schemas import CityRead, CityUpdate
+from schemas import CityRead, CityUpdate, CityCreate
 from services import city_service
 
 router = APIRouter(prefix="/cities",
@@ -35,23 +34,19 @@ async def get_all(*,
 @router.post("", status_code=status.HTTP_201_CREATED,
              dependencies=[Depends(HTTPBearer())],
              response_model=CityRead,
-             summary="Create")
+             summary="Create City")
 async def create(*,
                  db: Session = Depends(get_db),
+                 body: CityCreate,
                  Authorize: AuthJWT = Depends()
                  ):
     """
-        Create new City
+        Create City
 
-        no parameters required.
+        - **name**: required
     """
     Authorize.jwt_required()
-    city = db.query(City).filter(
-        City.user_id==Authorize.get_jwt_subject()
-    ).first()
-    if city is not None:
-        return city
-    return city_service.create(db, {"user_id": Authorize.get_jwt_subject()})
+    return city_service.create(db, body)
 
 
 @router.get("/{id}/", dependencies=[Depends(HTTPBearer())],

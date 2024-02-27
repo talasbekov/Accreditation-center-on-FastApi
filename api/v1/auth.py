@@ -4,7 +4,7 @@ from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 
 from core import get_db
-from schemas import LoginForm, RegistrationForm, UserRegistrationForm
+from schemas import LoginForm, RegistrationForm
 from services import auth_service
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])
@@ -51,20 +51,20 @@ async def register(form: RegistrationForm, db: Session = Depends(get_db)):
     return auth_service.register(form, db)
 
 
-@router.post("/register/user", summary="Register User",
-             dependencies=[Depends(HTTPBearer())])
-async def register_candidate(form: UserRegistrationForm,
-                             Authorize: AuthJWT = Depends(),
-                             db: Session = Depends(get_db)):
-    """
-        Register new candidate to the system.
-
-        - **iin**: str
-    """
-    Authorize.jwt_required()
-    role = Authorize.get_raw_jwt()['role']
-    return auth_service.register_candidate(
-        form=form, db=db, staff_unit_id=role)
+# @router.post("/register/user", summary="Register User",
+#              dependencies=[Depends(HTTPBearer())])
+# async def register_candidate(form: UserRegistrationForm,
+#                              Authorize: AuthJWT = Depends(),
+#                              db: Session = Depends(get_db)):
+#     """
+#         Register new candidate to the system.
+#
+#         - **iin**: str
+#     """
+#     Authorize.jwt_required()
+#     role = Authorize.get_raw_jwt()['role']
+#     return auth_service.register_candidate(
+#         form=form, db=db, staff_unit_id=role)
 
 
 @router.get('/refresh', dependencies=[Depends(HTTPBearer())])

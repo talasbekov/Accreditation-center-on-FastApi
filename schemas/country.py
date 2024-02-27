@@ -1,8 +1,8 @@
 from typing import Optional
-from schemas import ReadNamedModel
+from schemas import ReadNamedModel, NamedModel
 
 
-class CountryBase(ReadNamedModel):
+class CountryBase(NamedModel):
     country_code: Optional[str]
     country_iso: Optional[str]
     cis_flag: Optional[bool]
@@ -16,5 +16,5 @@ class CountryUpdate(CountryBase):
     pass
 
 
-class CountryRead(CountryBase):
+class CountryRead(CountryBase, ReadNamedModel):
     pass

@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from sqlalchemy import String, Column, ForeignKey, DateTime, Date
+from sqlalchemy import String, Column, ForeignKey, Date
 from sqlalchemy.orm import relationship
 
 from .base import Model
@@ -22,11 +20,11 @@ class Attendee(Model):
 	doc_issue = Column(String(50))
 	photo = Column(String)  # Путь к файлу вместо ImageField
 	doc_scan = Column(String)  # Путь к файлу вместо ImageField
-	date_add = Column(DateTime, default=datetime.utcnow)
-	visit_objects = Column(String(1024))
+	# date_add = Column(DateTime, default=datetime.utcnow)
+	visit_object = Column(String(1024))
 	transcription = Column(String(128))
-	date_end = Column(Date, nullable=True)
-	stick_id = Column(String(20), default="")
+	# date_end = Column(Date, nullable=True)
+	# stick_id = Column(String(20), default="")
 
 	sex_id = Column(String(), ForeignKey('sexes.id'), nullable=True)
 	country_id = Column(String(), ForeignKey('countries.id'), nullable=True)

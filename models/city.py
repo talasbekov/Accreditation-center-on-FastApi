@@ -1,4 +1,6 @@
 from sqlalchemy import Column, String
+from sqlalchemy.orm import relationship
+
 from models import NamedModel
 
 
@@ -8,3 +10,5 @@ class City(NamedModel):
 
     city_code = Column(String(20), unique=True)
     index = Column(String(20))
+
+    events = relationship("Event", back_populates="cities")

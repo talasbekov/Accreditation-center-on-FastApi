@@ -1,8 +1,8 @@
 from typing import Optional
-from schemas import ReadNamedModel
+from schemas import ReadNamedModel, NamedModel
 
 
-class DocumentTypeBase(ReadNamedModel):
+class DocumentTypeBase(NamedModel):
     doc_code: Optional[str]
 
 
@@ -14,5 +14,5 @@ class DocumentTypeUpdate(DocumentTypeBase):
     pass
 
 
-class DocumentTypeRead(DocumentTypeBase):
+class DocumentTypeRead(DocumentTypeBase, ReadNamedModel):
     pass

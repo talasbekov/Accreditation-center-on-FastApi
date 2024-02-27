@@ -2,10 +2,10 @@ from datetime import datetime
 from typing import Optional
 from pydantic import EmailStr
 
-from schemas import ReadNamedModel
+from schemas import ReadNamedModel, NamedModel
 
 
-class UserBase(ReadNamedModel):
+class UserBase(NamedModel):
     email: Optional[EmailStr]
     name: Optional[str]
     admin: bool = False
@@ -22,5 +22,5 @@ class UserUpdate(UserBase):
     password: Optional[str] = None
 
 
-class UserRead(UserBase):
+class UserRead(UserBase, ReadNamedModel):
     pass

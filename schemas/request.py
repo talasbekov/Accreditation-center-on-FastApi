@@ -5,8 +5,7 @@ from schemas import ReadModel
 
 # Схема для Operator
 class RequestBase(ReadModel):
-
-    user_id: Optional[int] = None
+    user_id: Optional[str] = None
     patronymic: Optional[str] = None
     phone_number: Optional[str] = None
     workplace: Optional[str] = None
@@ -21,5 +20,5 @@ class RequestUpdate(RequestBase):
     pass
 
 
-class RequestRead(RequestBase):
+class RequestRead(RequestBase, ReadModel):
     pass

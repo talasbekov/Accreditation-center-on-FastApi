@@ -23,35 +23,42 @@ def upgrade() -> None:
     op.create_table(
         'categories',
         sa.Column('id', sa.String(length=36), primary_key=True, index=True),
+        sa.Column('name', sa.String(length=128), nullable=False),
+        sa.Column('namekz', sa.String(length=128), nullable=True),
+        sa.Column('nameen', sa.String(length=128), nullable=True),
         sa.Column('category_code', sa.String(length=20), nullable=False, unique=True),
         sa.Column('index', sa.String(length=20), nullable=True),
-        sa.Column('name', sa.String(length=128), nullable=False),
         sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
+        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now()),
+        # sa.PrimaryKeyConstraint('id')
     )
     
     op.create_table(
         'cities',
         sa.Column('id', sa.String(length=36), primary_key=True, index=True),
+        sa.Column('name', sa.String(length=128), nullable=False),
+        sa.Column('namekz', sa.String(length=128), nullable=True),
+        sa.Column('nameen', sa.String(length=128), nullable=True),
         sa.Column('city_code', sa.String(length=20), nullable=False, unique=True),
         sa.Column('index', sa.String(length=20), nullable=True),
-        sa.Column('name', sa.String(length=128), nullable=False),
         sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
+        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now()),
+        # sa.PrimaryKeyConstraint('id')
     )
     
     op.create_table(
         'events',
         sa.Column('id', sa.String(length=36), primary_key=True, index=True),
+        sa.Column('name', sa.String(length=128), nullable=False),
+        sa.Column('namekz', sa.String(length=128), nullable=True),
+        sa.Column('nameen', sa.String(length=128), nullable=True),
         sa.Column('event_code', sa.String(length=20), nullable=False, unique=True, index=True),
         sa.Column('date_start', sa.Date, nullable=True),
         sa.Column('date_end', sa.Date, nullable=True),
         sa.Column('city_code', sa.String(length=20), nullable=True),
-        sa.Column('name', sa.String(length=128), nullable=False),
-        sa.Column('namekz', sa.String(length=128), nullable=True),
-        sa.Column('nameen', sa.String(length=128), nullable=True),
         sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
+        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now()),
+        # sa.PrimaryKeyConstraint('id')
     )
     
     op.create_table(
@@ -70,7 +77,8 @@ def upgrade() -> None:
         sa.Column('namekz', sa.String(length=128), nullable=True),
         sa.Column('nameen', sa.String(length=128), nullable=True),
         sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
+        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now()),
+        # sa.PrimaryKeyConstraint('id')
     )
     
     op.create_table(
@@ -82,10 +90,10 @@ def upgrade() -> None:
     op.create_table(
         'document_types',
         sa.Column('id', sa.String(length=36), primary_key=True, index=True),
-        sa.Column('doc_code', sa.String(length=20), nullable=False, unique=True),
         sa.Column('name', sa.String(length=128), nullable=False),
         sa.Column('namekz', sa.String(length=128), nullable=True),
         sa.Column('nameen', sa.String(length=128), nullable=True),
+        sa.Column('doc_code', sa.String(length=20), nullable=False, unique=True),
         sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
     )
@@ -115,24 +123,6 @@ def upgrade() -> None:
         sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
     )
 
-    # Create table for Attendee
-    op.create_table(
-        'attendees',
-        sa.Column('id', sa.String(length=36), primary_key=True, index=True),
-        sa.Column('surname', sa.String(length=128), nullable=False),
-        sa.Column('firstname', sa.String(length=128), nullable=False),
-        sa.Column('patronymic', sa.String(length=128), nullable=True),
-        sa.Column('birth_date', sa.Date, nullable=True),
-        sa.Column('post', sa.String(length=1024), nullable=True),
-        sa.Column('doc_series', sa.String(length=128), nullable=True),
-        sa.Column('iin', sa.String(length=12), nullable=False, index=True),
-        sa.Column('doc_number', sa.String(length=20), nullable=True),
-        sa.Column('doc_begin_date', sa.Date, nullable=True),
-        sa.Column('doc_end_date', sa.Date, nullable=True),
-        sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
-        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
-    )
-
     # Create table for Request
     op.create_table(
         'requests',
@@ -145,6 +135,38 @@ def upgrade() -> None:
         sa.Column('registration_time', sa.DateTime, nullable=True),
         sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
+    )
+
+    # Create table for Attendee
+    op.create_table(
+        'attendees',
+        sa.Column('id', sa.String(length=36), primary_key=True, index=True),
+        sa.Column('surname', sa.String(length=128), nullable=False),
+        sa.Column('firstname', sa.String(length=128), nullable=False),
+        sa.Column('patronymic', sa.String(length=128), nullable=True),
+        sa.Column('birth_date', sa.Date, nullable=True),
+        sa.Column('post', sa.String(length=1024), nullable=True),
+        sa.Column('doc_series', sa.String(length=128), nullable=True),
+        sa.Column('iin', sa.String(length=12), nullable=False, index=True),
+        sa.Column('doc_number', sa.String(length=20), nullable=True),
+        sa.Column('doc_begin', sa.Date, nullable=True),
+        sa.Column('doc_end', sa.Date, nullable=True),
+        sa.Column('doc_issue', sa.String(length=50), nullable=True),
+        sa.Column('photo', sa.String(length=1024), nullable=True),
+        sa.Column('doc_scan', sa.String(length=1024), nullable=True),
+        sa.Column('visit_object', sa.String(length=1024), nullable=True),
+        sa.Column('transcription', sa.String(length=128), nullable=True),
+        sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
+        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now()),
+        sa.Column('sex_id', sa.String(), sa.ForeignKey('sexes.id'), nullable=False),
+        sa.Column('country_id', sa.String(), sa.ForeignKey('countries.id'), nullable=False),
+        sa.Column('request_id', sa.String(), sa.ForeignKey('requests.id'), nullable=False),
+        sa.Column('doc_type_id', sa.String(), sa.ForeignKey('document_types.id'), nullable=False),
+        # sa.ForeignKeyConstraint(['sex_id'], ['sexes.id'], name='fk_sex_id'),
+        # sa.ForeignKeyConstraint(['country_id'], ['countries.id'], name='fk_country_id'),
+        # sa.ForeignKeyConstraint(['request_id'], ['requests.id'], name='fk_request_id'),
+        # sa.ForeignKeyConstraint(['doc_type_id'], ['document_types.id'], name='fk_doc_type_id'),
+        # sa.PrimaryKeyConstraint('id', name='pk_attendees')
     )
     # ### end Alembic commands ###
 

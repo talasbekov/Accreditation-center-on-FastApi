@@ -1,8 +1,8 @@
 from typing import Optional
-from schemas import ReadNamedModel
+from schemas import ReadNamedModel, NamedModel
 
 
-class SexBase(ReadNamedModel):
+class SexBase(NamedModel):
     sex_code: Optional[str]
 
 
@@ -14,5 +14,5 @@ class SexUpdate(SexBase):
     pass
 
 
-class SexRead(SexBase):
+class SexRead(SexBase, ReadNamedModel):
     pass

@@ -6,9 +6,8 @@ from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 
 from core import get_db
-from models import DocumentType
 
-from schemas import DocumentTypeRead, DocumentTypeUpdate
+from schemas import DocumentTypeRead, DocumentTypeUpdate, DocumentTypeCreate
 from services import document_service
 
 router = APIRouter(prefix="/documents",
@@ -35,23 +34,19 @@ async def get_all(*,
 @router.post("", status_code=status.HTTP_201_CREATED,
              dependencies=[Depends(HTTPBearer())],
              response_model=DocumentTypeRead,
-             summary="Create")
+             summary="Create DocumentType")
 async def create(*,
                  db: Session = Depends(get_db),
+                 body: DocumentTypeCreate,
                  Authorize: AuthJWT = Depends()
                  ):
     """
-        Create new DocumentType
+        Create DocumentType
 
-        no parameters required.
+        - **name**: required
     """
     Authorize.jwt_required()
-    documentType = db.query(DocumentType).filter(
-        DocumentType.user_id==Authorize.get_jwt_subject()
-    ).first()
-    if documentType is not None:
-        return documentType
-    return document_service.create(db, {"user_id": Authorize.get_jwt_subject()})
+    return document_service.create(db, body)
 
 
 @router.get("/{id}/", dependencies=[Depends(HTTPBearer())],

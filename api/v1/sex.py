@@ -6,9 +6,8 @@ from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 
 from core import get_db
-from models import Sex
 
-from schemas import SexRead, SexUpdate
+from schemas import SexRead, SexUpdate, SexCreate
 from services import sex_service
 
 router = APIRouter(prefix="/sexes",
@@ -35,23 +34,19 @@ async def get_all(*,
 @router.post("", status_code=status.HTTP_201_CREATED,
              dependencies=[Depends(HTTPBearer())],
              response_model=SexRead,
-             summary="Create")
+             summary="Create Sex")
 async def create(*,
                  db: Session = Depends(get_db),
+                 body: SexCreate,
                  Authorize: AuthJWT = Depends()
                  ):
     """
-        Create new Sex
+        Create Sex
 
-        no parameters required.
+        - **name**: required
     """
     Authorize.jwt_required()
-    sex = db.query(Sex).filter(
-        Sex.user_id==Authorize.get_jwt_subject()
-    ).first()
-    if sex is not None:
-        return sex
-    return sex_service.create(db, {"user_id": Authorize.get_jwt_subject()})
+    return sex_service.create(db, body)
 
 
 @router.get("/{id}/", dependencies=[Depends(HTTPBearer())],

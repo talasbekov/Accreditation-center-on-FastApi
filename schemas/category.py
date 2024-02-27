@@ -1,8 +1,8 @@
 from typing import Optional
-from schemas import ReadNamedModel
+from schemas import ReadNamedModel, NamedModel
 
 
-class CategoryBase(ReadNamedModel):
+class CategoryBase(NamedModel):
     category_code: Optional[str]
     index: Optional[str]
 
@@ -15,5 +15,5 @@ class CategoryUpdate(CategoryBase):
     pass
 
 
-class CategoryRead(CategoryBase):
+class CategoryRead(CategoryBase, ReadNamedModel):
     pass

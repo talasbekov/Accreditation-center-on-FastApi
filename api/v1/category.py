@@ -6,9 +6,8 @@ from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 
 from core import get_db
-from models import Category
 
-from schemas import CategoryRead, CategoryUpdate
+from schemas import CategoryRead, CategoryUpdate, CategoryCreate
 from services import category_service
 
 router = APIRouter(prefix="/categories",
@@ -35,23 +34,19 @@ async def get_all(*,
 @router.post("", status_code=status.HTTP_201_CREATED,
              dependencies=[Depends(HTTPBearer())],
              response_model=CategoryRead,
-             summary="Create")
+             summary="Create Position")
 async def create(*,
                  db: Session = Depends(get_db),
+                 body: CategoryCreate,
                  Authorize: AuthJWT = Depends()
                  ):
     """
-        Create new Category
+        Create Category
 
-        no parameters required.
+        - **name**: required
     """
     Authorize.jwt_required()
-    category = db.query(Category).filter(
-        Category.user_id==Authorize.get_jwt_subject()
-    ).first()
-    if category is not None:
-        return category
-    return category_service.create(db, {"user_id": Authorize.get_jwt_subject()})
+    return category_service.create(db, body)
 
 
 @router.get("/{id}/", dependencies=[Depends(HTTPBearer())],

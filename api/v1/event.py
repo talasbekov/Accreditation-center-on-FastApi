@@ -6,9 +6,8 @@ from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 
 from core import get_db
-from models import Event
 
-from schemas import EventRead, EventUpdate
+from schemas import EventRead, EventUpdate, EventCreate
 from services import event_service
 
 router = APIRouter(prefix="/events",
@@ -35,23 +34,19 @@ async def get_all(*,
 @router.post("", status_code=status.HTTP_201_CREATED,
              dependencies=[Depends(HTTPBearer())],
              response_model=EventRead,
-             summary="Create")
+             summary="Create Event")
 async def create(*,
                  db: Session = Depends(get_db),
+                 body: EventCreate,
                  Authorize: AuthJWT = Depends()
                  ):
     """
-        Create new Event
+        Create Event
 
-        no parameters required.
+        - **name**: required
     """
     Authorize.jwt_required()
-    event = db.query(Event).filter(
-        Event.user_id==Authorize.get_jwt_subject()
-    ).first()
-    if event is not None:
-        return event
-    return event_service.create(db, {"user_id": Authorize.get_jwt_subject()})
+    return event_service.create(db, body)
 
 
 @router.get("/{id}/", dependencies=[Depends(HTTPBearer())],

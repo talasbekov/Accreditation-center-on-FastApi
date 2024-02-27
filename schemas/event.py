@@ -1,13 +1,10 @@
 from typing import Optional
 from datetime import date
-from schemas import ReadModel
+from schemas import ReadNamedModel, NamedModel
 
 
 # Схема для Event
-class EventBase(ReadModel):
-    name_kaz: Optional[str]
-    name: Optional[str]
-    name_eng: Optional[str]
+class EventBase(NamedModel):
     event_code: Optional[str]
     date_start: Optional[date]
     date_end: Optional[date]
@@ -22,5 +19,5 @@ class EventUpdate(EventBase):
     pass
 
 
-class EventRead(EventBase):
+class EventRead(EventBase, ReadNamedModel):
     pass

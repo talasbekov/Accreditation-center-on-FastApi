@@ -1,8 +1,8 @@
 from typing import Optional
-from schemas import ReadNamedModel
+from schemas import ReadNamedModel, NamedModel
 
 
-class CityBase(ReadNamedModel):
+class CityBase(NamedModel):
     city_code: Optional[str]
     index: Optional[str]
 
@@ -15,5 +15,5 @@ class CityUpdate(CityBase):
     pass
 
 
-class CityRead(CityBase):
+class CityRead(CityBase, ReadNamedModel):
     pass

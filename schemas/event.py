@@ -8,7 +8,7 @@ class EventBase(NamedModel):
     event_code: Optional[str]
     date_start: Optional[date]
     date_end: Optional[date]
-    city_code: Optional[str]
+    city_id: Optional[str]
 
 
 class EventCreate(EventBase):

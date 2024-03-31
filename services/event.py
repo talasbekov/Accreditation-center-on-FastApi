@@ -1,7 +1,10 @@
 from typing import Optional
 from sqlalchemy.orm import Session
 from models import Event  # Предполагается, что у вас есть модель Event в models.py
-from schemas import EventCreate, EventUpdate  # Предполагается, что у вас есть схемы создания и обновления событий
+from schemas import (
+    EventCreate,
+    EventUpdate,
+)  # Предполагается, что у вас есть схемы создания и обновления событий
 from services.base import ServiceBase
 
 

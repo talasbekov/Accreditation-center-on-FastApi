@@ -29,7 +29,8 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         res = self.get(db, id)
         if res is None:
             raise NotFoundException(
-                detail=f"{self.model.__name__} with id {id} not found!")
+                detail=f"{self.model.__name__} with id {id} not found!"
+            )
         return res
 
     def get_multi(
@@ -37,9 +38,12 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     ) -> List[ModelType]:
         return db.query(self.model).offset(skip).limit(limit).all()
 
-    def create(self, db: Session,
-               obj_in: Union[CreateSchemaType, Dict[str, Any]],
-               model: ModelType = None) -> ModelType:
+    def create(
+        self,
+        db: Session,
+        obj_in: Union[CreateSchemaType, Dict[str, Any]],
+        model: ModelType = None,
+    ) -> ModelType:
         if model is None:
             model = self.model
         obj_in_data = jsonable_encoder(obj_in)
@@ -49,11 +53,7 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def update(
-        self,
-        db: Session,
-        *,
-        db_obj: ModelType,
-        obj_in: UpdateSchemaType
+        self, db: Session, *, db_obj: ModelType, obj_in: UpdateSchemaType
     ) -> ModelType:
         obj_data = jsonable_encoder(db_obj)
         if isinstance(obj_in, dict):

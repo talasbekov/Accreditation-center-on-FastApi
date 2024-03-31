@@ -1,7 +1,12 @@
 from typing import Optional
 from sqlalchemy.orm import Session
-from models import Category  # Предполагается, что у вас есть модель Category в models.py
-from schemas import CategoryCreate, CategoryUpdate  # Предполагается, что у вас есть схемы создания и обновления событий
+from models import (
+    Category,
+)  # Предполагается, что у вас есть модель Category в models.py
+from schemas import (
+    CategoryCreate,
+    CategoryUpdate,
+)  # Предполагается, что у вас есть схемы создания и обновления событий
 from services.base import ServiceBase
 
 

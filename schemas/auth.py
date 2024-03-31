@@ -25,10 +25,10 @@ class UserRegistrationForm(RegistrationForm):
     iin: str
     phone_number: Optional[str]
 
-    @validator('iin')
+    @validator("iin")
     def validate_iin(cls, v):
         if not v.isdigit():
-            raise ValueError('iin must contain only digits')
+            raise ValueError("iin must contain only digits")
         if len(v) != 12:
-            raise ValueError('iin must be exactly 12 digits')
+            raise ValueError("iin must be exactly 12 digits")
         return v

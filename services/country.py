@@ -1,7 +1,10 @@
 from typing import Optional
 from sqlalchemy.orm import Session
 from models import Country  # Предполагается, что у вас есть модель Country в models.py
-from schemas import CountryCreate, CountryUpdate  # Предполагается, что у вас есть схемы создания и обновления событий
+from schemas import (
+    CountryCreate,
+    CountryUpdate,
+)  # Предполагается, что у вас есть схемы создания и обновления событий
 from services.base import ServiceBase
 
 

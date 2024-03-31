@@ -12,6 +12,7 @@ class AttendeeBase(Model):
     country_id: Optional[str]
     doc_type_id: Optional[str]
     sex_id: Optional[str]
+    request_id: Optional[str]
     iin: Optional[str]
     doc_number: Optional[str]
     doc_begin: Optional[date]
@@ -19,7 +20,7 @@ class AttendeeBase(Model):
     doc_issue: Optional[str]
     photo: Optional[str]
     doc_scan: Optional[str]
-    visit_objects: Optional[str]
+    visit_object: Optional[str]
     transcription: Optional[str]
 
 

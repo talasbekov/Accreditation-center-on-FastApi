@@ -21,4 +21,7 @@ class User(NamedModel):
     login_count = Column(Integer, default=0)
 
     requests = relationship("Request", back_populates="users")
-    events = relationship("Event", secondary=user_event_association, back_populates="users")
+    events = relationship(
+        "Event", secondary=user_event_association, back_populates="users"
+    )
+    permissions = relationship("Permission", back_populates="user")

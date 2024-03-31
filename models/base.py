@@ -23,8 +23,8 @@ class Cloneable:
         new_obj = self.__class__()
 
         for c in self.__table__.c:
-            if c.name == 'namekz':
-                setattr(new_obj, 'nameKZ', getattr(self, 'nameKZ'))
+            if c.name == "namekz":
+                setattr(new_obj, "nameKZ", getattr(self, "nameKZ"))
             else:
                 setattr(new_obj, c.name, getattr(self, c.name))
 
@@ -39,13 +39,16 @@ class Cloneable:
 class Model(Base, Cloneable):
     __abstract__ = True
 
-    id = Column(String(), primary_key=True,
-                nullable=False, default=lambda: str(uuid.uuid4()))
+    id = Column(
+        String(), primary_key=True, nullable=False, default=lambda: str(uuid.uuid4())
+    )
 
-    created_at = Column(TIMESTAMP(timezone=True),
-                        nullable=False, server_default=text("now()"))
-    updated_at = Column(TIMESTAMP(timezone=True),
-                        nullable=False, server_default=text("now()"))
+    created_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
+    )
+    updated_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
+    )
 
 
 """
@@ -59,8 +62,8 @@ class NamedModel(Model):
     __abstract__ = True
 
     name = Column(String, nullable=False)
-    nameKZ = Column('namekz', String, nullable=True)
-    nameEN = Column('nameen', String, nullable=True)
+    nameKZ = Column("namekz", String, nullable=True)
+    nameEN = Column("nameen", String, nullable=True)
 
 
 """
@@ -103,5 +106,5 @@ class TextModel(Model):
     __abstract__ = True
 
     text = Column(CLOB, nullable=False)
-    textKZ = Column('textkz', CLOB, nullable=True)
-    textEN = Column('texten', CLOB, nullable=True)
+    textKZ = Column("textkz", CLOB, nullable=True)
+    textEN = Column("texten", CLOB, nullable=True)

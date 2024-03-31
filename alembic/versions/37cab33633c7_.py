@@ -55,7 +55,7 @@ def upgrade() -> None:
         sa.Column('event_code', sa.String(length=20), nullable=False, unique=True, index=True),
         sa.Column('date_start', sa.Date, nullable=True),
         sa.Column('date_end', sa.Date, nullable=True),
-        sa.Column('city_code', sa.String(length=20), nullable=True),
+        sa.Column('city_id', sa.String(), sa.ForeignKey('cities.id'), nullable=True),
         sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now()),
         # sa.PrimaryKeyConstraint('id')
@@ -130,9 +130,7 @@ def upgrade() -> None:
         sa.Column('name', sa.String(length=128), nullable=False, index=True),
         sa.Column('event_id', sa.String(), sa.ForeignKey('events.id'), nullable=False),
         sa.Column('status', sa.String(length=20), nullable=True),
-        sa.Column('date_created', sa.DateTime, nullable=False, default=sa.func.now()),
         sa.Column('created_by_id', sa.String(), sa.ForeignKey('users.id'), nullable=False),
-        sa.Column('registration_time', sa.DateTime, nullable=True),
         sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
     )
@@ -168,6 +166,29 @@ def upgrade() -> None:
         # sa.ForeignKeyConstraint(['doc_type_id'], ['document_types.id'], name='fk_doc_type_id'),
         # sa.PrimaryKeyConstraint('id', name='pk_attendees')
     )
+
+    # Create table for Permission Types
+    op.create_table(
+        'permission_types',
+        sa.Column('id', sa.String(length=36), primary_key=True, index=True),
+        sa.Column('name', sa.String(length=128), nullable=False),
+        sa.Column('namekz', sa.String(length=128), nullable=True),
+        sa.Column('nameen', sa.String(length=128), nullable=True),
+        sa.Column('sequence_id', sa.Integer, nullable=False, default=0),
+        sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
+        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
+    )
+
+    # Create table for Permissions
+    op.create_table(
+        'permissions',
+        sa.Column('id', sa.String(length=36), primary_key=True, index=True),
+        sa.Column('user_id', sa.String(), sa.ForeignKey('users.id'), nullable=False),
+        sa.Column('type_id', sa.String(), sa.ForeignKey('permission_types.id'), nullable=False),
+        sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
+        sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
+    )
+
     # ### end Alembic commands ###
 
 

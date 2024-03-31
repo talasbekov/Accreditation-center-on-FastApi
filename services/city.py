@@ -1,7 +1,10 @@
 from typing import Optional
 from sqlalchemy.orm import Session
 from models import City  # Предполагается, что у вас есть модель City в models.py
-from schemas import CityCreate, CityUpdate  # Предполагается, что у вас есть схемы создания и обновления событий
+from schemas import (
+    CityCreate,
+    CityUpdate,
+)  # Предполагается, что у вас есть схемы создания и обновления событий
 from services.base import ServiceBase
 
 

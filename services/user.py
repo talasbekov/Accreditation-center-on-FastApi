@@ -1,7 +1,10 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
 from models import User  # Предполагается, что у вас есть модель User в models.py
-from schemas import UserCreate, UserUpdate  # Предполагается, что у вас есть схемы создания и обновления событий
+from schemas import (
+    UserCreate,
+    UserUpdate,
+)  # Предполагается, что у вас есть схемы создания и обновления событий
 from services.base import ServiceBase
 
 
@@ -23,7 +26,9 @@ class UserService(ServiceBase[User, UserCreate, UserUpdate]):
             user.last_login = now
             db.commit()
 
-    def get_login_count(user_id: str, start_date: datetime, end_date: datetime, db: Session) -> int:
+    def get_login_count(
+        user_id: str, start_date: datetime, end_date: datetime, db: Session
+    ) -> int:
         user = db.query(User).filter(User.id == user_id).first()
         if user and start_date <= user.last_login <= end_date:
             return user.login_count

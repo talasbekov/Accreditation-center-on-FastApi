@@ -10,94 +10,108 @@ from core import get_db
 from schemas import RequestRead, RequestUpdate, RequestCreate
 from services import request_service
 
-router = APIRouter(prefix="/requests",
-                   tags=["Requests"], dependencies=[Depends(HTTPBearer())])
+router = APIRouter(
+    prefix="/requests", tags=["Requests"], dependencies=[Depends(HTTPBearer())]
+)
 
 
-@router.get("", dependencies=[Depends(HTTPBearer())],
-            response_model=List[RequestRead],
-            summary="Get all Requests")
-async def get_all(*,
-                  db: Session = Depends(get_db),
-                  skip: int = 0,
-                  limit: int = 100,
-                  Authorize: AuthJWT = Depends()
-                  ):
+@router.get(
+    "",
+    dependencies=[Depends(HTTPBearer())],
+    response_model=List[RequestRead],
+    summary="Get all Requests",
+)
+async def get_all(
+    *,
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+    Authorize: AuthJWT = Depends()
+):
     """
-        Get all Requests
+    Get all Requests
 
     """
     Authorize.jwt_required()
     return request_service.get_multi(db, skip, limit)
 
 
-@router.post("", status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(HTTPBearer())],
-             response_model=RequestRead,
-             summary="Create Request")
-async def create(*,
-                 db: Session = Depends(get_db),
-                 body: RequestCreate,
-                 Authorize: AuthJWT = Depends()
-                 ):
+@router.post(
+    "",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(HTTPBearer())],
+    response_model=RequestRead,
+    summary="Create Request",
+)
+async def create(
+    *,
+    db: Session = Depends(get_db),
+    body: RequestCreate,
+    Authorize: AuthJWT = Depends()
+):
     """
-        Create Request
+    Create Request
 
-        - **name**: required
+    - **name**: required
     """
     Authorize.jwt_required()
     return request_service.create(db, body)
 
 
-@router.get("/{id}/", dependencies=[Depends(HTTPBearer())],
-            response_model=RequestRead,
-            summary="Get Request by id")
-async def get_by_id(*,
-                    db: Session = Depends(get_db),
-                    id: str,
-                    Authorize: AuthJWT = Depends()
-                    ):
+@router.get(
+    "/{id}/",
+    dependencies=[Depends(HTTPBearer())],
+    response_model=RequestRead,
+    summary="Get Request by id",
+)
+async def get_by_id(
+    *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
+):
     """
-        Get Request by id
+    Get Request by id
 
-        - **id**: UUID - required.
+    - **id**: UUID - required.
     """
     Authorize.jwt_required()
     return request_service.get_by_id(db, str(id))
 
 
-@router.put("/{id}/", dependencies=[Depends(HTTPBearer())],
-            response_model=RequestRead,
-            summary="Update Request")
-async def update(*,
-                 db: Session = Depends(get_db),
-                 id: str,
-                 body: RequestUpdate,
-                 Authorize: AuthJWT = Depends()
-                 ):
+@router.put(
+    "/{id}/",
+    dependencies=[Depends(HTTPBearer())],
+    response_model=RequestRead,
+    summary="Update Request",
+)
+async def update(
+    *,
+    db: Session = Depends(get_db),
+    id: str,
+    body: RequestUpdate,
+    Authorize: AuthJWT = Depends()
+):
     """
-        Update Request
+    Update Request
 
     """
     Authorize.jwt_required()
     return request_service.update(
-        db,
-        db_obj=request_service.get_by_id(db, str(id)),
-        obj_in=body)
+        db, db_obj=request_service.get_by_id(db, str(id)), obj_in=body
+    )
 
 
-@router.delete("/{id}/", status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(HTTPBearer())],
-               summary="Delete Request")
-async def delete(*,
-                 db: Session = Depends(get_db),
-                 id: str,
-                 Authorize: AuthJWT = Depends()
-                 ):
+@router.delete(
+    "/{id}/",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(HTTPBearer())],
+    summary="Delete Request",
+)
+async def delete(
+    *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
+):
     """
-        Delete Request
+    Delete Request
 
-        - **id**: UUId - required
+    - **id**: UUId - required
     """
     Authorize.jwt_required()
     request_service.remove(db, str(id))

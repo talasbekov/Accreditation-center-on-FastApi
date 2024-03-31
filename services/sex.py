@@ -1,7 +1,10 @@
 from typing import Optional
 from sqlalchemy.orm import Session
 from models import Sex  # Предполагается, что у вас есть модель Sex в models.py
-from schemas import SexCreate, SexUpdate  # Предполагается, что у вас есть схемы создания и обновления событий
+from schemas import (
+    SexCreate,
+    SexUpdate,
+)  # Предполагается, что у вас есть схемы создания и обновления событий
 from services.base import ServiceBase
 
 

@@ -10,94 +10,105 @@ from core import get_db
 from schemas import SexRead, SexUpdate, SexCreate
 from services import sex_service
 
-router = APIRouter(prefix="/sexes",
-                   tags=["Sexes"], dependencies=[Depends(HTTPBearer())])
+router = APIRouter(
+    prefix="/sexes", tags=["Sexes"], dependencies=[Depends(HTTPBearer())]
+)
 
 
-@router.get("", dependencies=[Depends(HTTPBearer())],
-            response_model=List[SexRead],
-            summary="Get all Sexes")
-async def get_all(*,
-                  db: Session = Depends(get_db),
-                  skip: int = 0,
-                  limit: int = 100,
-                  Authorize: AuthJWT = Depends()
-                  ):
+@router.get(
+    "",
+    dependencies=[Depends(HTTPBearer())],
+    response_model=List[SexRead],
+    summary="Get all Sexes",
+)
+async def get_all(
+    *,
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+    Authorize: AuthJWT = Depends()
+):
     """
-        Get all Sexes
+    Get all Sexes
 
     """
     Authorize.jwt_required()
     return sex_service.get_multi(db, skip, limit)
 
 
-@router.post("", status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(HTTPBearer())],
-             response_model=SexRead,
-             summary="Create Sex")
-async def create(*,
-                 db: Session = Depends(get_db),
-                 body: SexCreate,
-                 Authorize: AuthJWT = Depends()
-                 ):
+@router.post(
+    "",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(HTTPBearer())],
+    response_model=SexRead,
+    summary="Create Sex",
+)
+async def create(
+    *, db: Session = Depends(get_db), body: SexCreate, Authorize: AuthJWT = Depends()
+):
     """
-        Create Sex
+    Create Sex
 
-        - **name**: required
+    - **name**: required
     """
     Authorize.jwt_required()
     return sex_service.create(db, body)
 
 
-@router.get("/{id}/", dependencies=[Depends(HTTPBearer())],
-            response_model=SexRead,
-            summary="Get Sex by id")
-async def get_by_id(*,
-                    db: Session = Depends(get_db),
-                    id: str,
-                    Authorize: AuthJWT = Depends()
-                    ):
+@router.get(
+    "/{id}/",
+    dependencies=[Depends(HTTPBearer())],
+    response_model=SexRead,
+    summary="Get Sex by id",
+)
+async def get_by_id(
+    *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
+):
     """
-        Get Sex by id
+    Get Sex by id
 
-        - **id**: UUID - required.
+    - **id**: UUID - required.
     """
     Authorize.jwt_required()
     return sex_service.get_by_id(db, str(id))
 
 
-@router.put("/{id}/", dependencies=[Depends(HTTPBearer())],
-            response_model=SexRead,
-            summary="Update Sex")
-async def update(*,
-                 db: Session = Depends(get_db),
-                 id: str,
-                 body: SexUpdate,
-                 Authorize: AuthJWT = Depends()
-                 ):
+@router.put(
+    "/{id}/",
+    dependencies=[Depends(HTTPBearer())],
+    response_model=SexRead,
+    summary="Update Sex",
+)
+async def update(
+    *,
+    db: Session = Depends(get_db),
+    id: str,
+    body: SexUpdate,
+    Authorize: AuthJWT = Depends()
+):
     """
-        Update Sex
+    Update Sex
 
     """
     Authorize.jwt_required()
     return sex_service.update(
-        db,
-        db_obj=sex_service.get_by_id(db, str(id)),
-        obj_in=body)
+        db, db_obj=sex_service.get_by_id(db, str(id)), obj_in=body
+    )
 
 
-@router.delete("/{id}/", status_code=status.HTTP_204_NO_CONTENT,
-               dependencies=[Depends(HTTPBearer())],
-               summary="Delete Sex")
-async def delete(*,
-                 db: Session = Depends(get_db),
-                 id: str,
-                 Authorize: AuthJWT = Depends()
-                 ):
+@router.delete(
+    "/{id}/",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(HTTPBearer())],
+    summary="Delete Sex",
+)
+async def delete(
+    *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
+):
     """
-        Delete Sex
+    Delete Sex
 
-        - **id**: UUId - required
+    - **id**: UUId - required
     """
     Authorize.jwt_required()
     sex_service.remove(db, str(id))

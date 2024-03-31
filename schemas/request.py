@@ -1,15 +1,14 @@
 from typing import Optional
 
-from schemas import ReadModel
+from schemas import Model, ReadModel
 
 
 # Схема для Operator
-class RequestBase(ReadModel):
-    user_id: Optional[str] = None
-    patronymic: Optional[str] = None
-    phone_number: Optional[str] = None
-    workplace: Optional[str] = None
-    is_accreditator: Optional[bool] = False
+class RequestBase(Model):
+    name: Optional[str]
+    event_id: Optional[str]
+    created_by_id: Optional[str]
+    status: Optional[str]
 
 
 class RequestCreate(RequestBase):

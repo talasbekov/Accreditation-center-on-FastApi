@@ -1,4 +1,4 @@
-from typing import List, Type
+from typing import List
 
 from fastapi import APIRouter, Depends, status, UploadFile, File
 from fastapi.security import HTTPBearer
@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from core import get_db
 # from exceptions import NotFoundException
-from models import Attendee
+# from models import Attendee
 
 from schemas import AttendeeRead, AttendeeUpdate, AttendeeCreate
 from services import attendee_service
@@ -17,7 +17,7 @@ router = APIRouter(
 )
 
 
-@router.post("/{attendee_id}/upload-photo/", dependencies=[Depends(HTTPBearer())], response_model=Type[Attendee],
+@router.post("/{attendee_id}/upload-photo/", dependencies=[Depends(HTTPBearer())],
              summary="Upload Image File")
 async def upload_attendee_photo(
     attendee_id: str,
@@ -35,6 +35,9 @@ async def upload_attendee_photo(
     #     # Общий обработчик исключений, можно уточнить типы исключений
     #     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
+@router.get("/attendees/{attendee_id}/photo/")
+async def download_attendee_photo(attendee_id: str, db: Session = Depends(get_db)):
+    return await attendee_service.download_photo(db, attendee_id)
 
 @router.get(
     "",

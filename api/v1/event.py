@@ -14,6 +14,9 @@ router = APIRouter(
     prefix="/events", tags=["Events"], dependencies=[Depends(HTTPBearer())]
 )
 
+@router.get("/download/{event_id}")
+async def download_event_zip(event_id: str, db: Session = Depends(get_db)):
+    return event_service.download_event(db, event_id)
 
 @router.get(
     "",

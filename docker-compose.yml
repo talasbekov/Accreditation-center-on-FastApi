@@ -38,7 +38,7 @@ services:
       - ./.data:/var/lib/postgresql/data
     networks:
       - backend-dev
-
+#    command: bash -c "ruff check . --ignore E712,E711 --exclude ./alembic,__init__.py && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --log-config log.ini --workers ${NUMBER_OF_WORKERS}"
   accreditation-center:
     platform: linux/amd64
     command: bash -c "ruff check . --ignore E712,E711 --exclude ./alembic,__init__.py && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --log-config log.ini --workers ${NUMBER_OF_WORKERS}"

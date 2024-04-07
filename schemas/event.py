@@ -2,6 +2,7 @@ from typing import Optional
 from datetime import date
 from schemas import ReadNamedModel, NamedModel
 from .request import RequestRead
+from .attendee import AttendeeRead
 from typing import List
 
 
@@ -24,3 +25,6 @@ class EventUpdate(EventBase):
 
 class EventRead(EventBase, ReadNamedModel):
     requests: Optional[List[RequestRead]]
+
+class EventReadWithAttendies(EventBase):
+    attendees: Optional[List[AttendeeRead]]

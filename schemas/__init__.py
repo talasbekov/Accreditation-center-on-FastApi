@@ -9,7 +9,7 @@ from .document_type import (
     DocumentTypeUpdate,
     DocumentTypeRead,
 )
-from .event import EventBase, EventCreate, EventUpdate, EventRead
+from .event import EventBase, EventCreate, EventUpdate, EventRead, EventReadWithAttendies
 from .request import RequestBase, RequestCreate, RequestUpdate, RequestRead
 from .sex import SexBase, SexCreate, SexUpdate, SexRead
 from .user import UserBase, UserCreate, UserUpdate, UserRead

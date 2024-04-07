@@ -4,12 +4,19 @@ from models import Event  # Предполагается, что у вас ес�
 from schemas import (
     EventCreate,
     EventUpdate,
+    EventReadWithAttendies
 )  # Предполагается, что у вас есть схемы создания и обновления событий
 from services.base import ServiceBase
 from fastapi.responses import FileResponse
 from fastapi import HTTPException
 import shutil
 import os
+from .request import request_service
+
+def model_to_dict(model_instance):
+    """Convert an SQLAlchemy model instance into a dictionary."""
+    return {attr: getattr(model_instance, attr) for attr in dir(model_instance)
+            if not attr.startswith('_') and not callable(getattr(model_instance, attr))}
 
 
 class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
@@ -45,5 +52,32 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
         return FileResponse(path=zip_file_path, filename=os.path.basename(zip_file_path),
                             media_type='application/octet-stream')
 
+    def get_event_with_attendees(self, db: Session, event_id: str) -> EventReadWithAttendies:
+        # Fetch the event by ID
+        event = self.get_by_id(db, event_id)
+        if event:  # Ensure event is not None
+            event_dict = model_to_dict(event)
+        else:
+            # Handle the case where the event is not found
+            return None
+        
+        # Initialize an empty list for attendees
+        all_attendees = []
+        
+        # Fetch requests associated with the event
+        requests = request_service.get_by_event_id(db, event_id)
+        
+        for request in requests:
+            # For each request, fetch associated attendees
+            attendees = request.attendees
+            all_attendees.extend(attendees)
+        
+        # Construct the EventRead object with attendees
+        event_read = EventReadWithAttendies(
+            **event_dict,  # Assuming event is a Pydantic model or similar
+            attendees=all_attendees
+        )
+        
+        return event_read
 
 event_service = EventService(Event)

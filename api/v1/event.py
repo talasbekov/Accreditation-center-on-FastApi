@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from core import get_db
 
-from schemas import EventRead, EventUpdate, EventCreate
+from schemas import EventRead, EventUpdate, EventCreate, EventReadWithAttendies
 from services import event_service
 
 router = APIRouter(
@@ -115,3 +115,20 @@ async def delete(
     """
     Authorize.jwt_required()
     event_service.remove(db, str(id))
+
+@router.get(
+    "/with_attendees/{id}/",
+    dependencies=[Depends(HTTPBearer())],
+    response_model=EventReadWithAttendies,
+    summary="Get Event with Attendees",
+)
+async def get_by_id_with_attedees(
+    *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
+):
+    """
+    Get Event by id
+
+    - **id**: UUID - required.
+    """
+    Authorize.jwt_required()
+    return event_service.get_event_with_attendees(db, str(id))

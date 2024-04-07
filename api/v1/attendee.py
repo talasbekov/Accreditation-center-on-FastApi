@@ -1,4 +1,4 @@
-from typing import List, Type
+from typing import List
 
 from fastapi import APIRouter, Depends, status, UploadFile, File
 from fastapi.security import HTTPBearer
@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from core import get_db
 # from exceptions import NotFoundException
-from models import Attendee
+# from models import Attendee
 
 from schemas import AttendeeRead, AttendeeUpdate, AttendeeCreate
 from services import attendee_service
@@ -17,7 +17,7 @@ router = APIRouter(
 )
 
 
-@router.post("/{attendee_id}/upload-photo/", dependencies=[Depends(HTTPBearer())], response_model=Type[Attendee],
+@router.post("/{attendee_id}/upload-photo/", dependencies=[Depends(HTTPBearer())],
              summary="Upload Image File")
 async def upload_attendee_photo(
     attendee_id: str,
@@ -35,6 +35,23 @@ async def upload_attendee_photo(
     #     # Общий обработчик исключений, можно уточнить типы исключений
     #     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
+@router.post("/{attendee_id}/upload-photo-scan/", dependencies=[Depends(HTTPBearer())],
+             summary="Upload Image File")
+async def upload_attendee_photo_scan(
+    attendee_id: str,
+    photo: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    attendee = await attendee_service.upload_photo_scan(db, attendee_id, photo)
+    return attendee
+    # try:
+    #     attendee = await attendee_service.upload_photo(db, attendee_id, photo)
+    #     return attendee
+    # except NotFoundException as e:  # Предполагается, что NotFoundException - это кастомное исключение
+    #     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e.detail))
+    # except Exception as e:
+    #     # Общий обработчик исключений, можно уточнить типы исключений
+    #     raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.get(
     "",

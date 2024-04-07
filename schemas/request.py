@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import Optional, List
 
 from schemas import Model, ReadModel
+from .attendee import AttendeeRead
 
 
 # Схема для Operator
@@ -20,4 +21,4 @@ class RequestUpdate(RequestBase):
 
 
 class RequestRead(RequestBase, ReadModel):
-    pass
+    attendees: Optional[List[AttendeeRead]]

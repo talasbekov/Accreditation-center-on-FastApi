@@ -51,6 +51,7 @@ def upgrade() -> None:
         sa.Column('id', sa.String(length=36), primary_key=True, index=True),
         sa.Column('name', sa.String(length=128), nullable=False),
         sa.Column('namekz', sa.String(length=128), nullable=True),
+        sa.Column('number', sa.Integer, nullable=True, autoincrement=True),
         sa.Column('nameen', sa.String(length=128), nullable=True),
         sa.Column('event_code', sa.String(length=20), nullable=False, unique=True, index=True),
         sa.Column('date_start', sa.Date, nullable=True),

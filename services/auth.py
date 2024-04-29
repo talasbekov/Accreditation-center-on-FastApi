@@ -1,7 +1,9 @@
 from datetime import timedelta, datetime
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
 from fastapi_jwt_auth import AuthJWT
+from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
+from starlette.status import HTTP_403_FORBIDDEN
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
 
@@ -18,16 +20,11 @@ class AuthService:
 
     def login(self, form: LoginForm, db: Session, Authorize: AuthJWT):
         user = user_service.get_by_email(db, EmailStr(form.email).lower())
-
-        if not user:
+        if not user or not verify_password(form.password, user.password):
             raise BadRequestException(detail="Incorrect email or password!")
-        if not verify_password(form.password, user.password):
-            raise BadRequestException(detail="Incorrect email or password")
 
         self._set_last_signed_at(db, user)
-
         access_token, refresh_token = self._generate_tokens(db, Authorize, user)
-
         return {"access_token": access_token, "refresh_token": refresh_token}
 
     def register(self, form: RegistrationForm, db: Session):
@@ -62,7 +59,7 @@ class AuthService:
                 detail="The user belonging to this token no longer exist",
             )
 
-        access_token, refresh_token = self._generate_tokens(Authorize, user)
+        access_token, refresh_token = self._generate_tokens(db, Authorize, user)
 
         return {"access_token": access_token, "refresh_token": refresh_token}
 
@@ -107,3 +104,18 @@ class AuthService:
 
 
 auth_service = AuthService()
+
+
+class CookieToken:
+    def __init__(self):
+        self.scheme = HTTPBearer()
+
+    async def __call__(self, request: Request):
+        token = request.cookies.get("access_token")
+        if not token:
+            raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Not authenticated")
+        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+        return credentials
+
+
+cookie_bearer = CookieToken()

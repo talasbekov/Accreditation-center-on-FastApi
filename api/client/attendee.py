@@ -1,9 +1,10 @@
-from typing import List
+# from typing import List
 
-from fastapi import APIRouter, Depends, status, UploadFile, File
+from fastapi import APIRouter, Depends, status, UploadFile, File, Request
 from fastapi.security import HTTPBearer
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
+from fastapi.templating import Jinja2Templates
 
 from core import get_db
 # from exceptions import NotFoundException
@@ -15,6 +16,8 @@ from services import attendee_service
 router = APIRouter(
     prefix="/attendee", tags=["Attendees"], dependencies=[Depends(HTTPBearer())]
 )
+
+templates = Jinja2Templates(directory='templates')
 
 
 @router.post("/{attendee_id}/upload-photo/", dependencies=[Depends(HTTPBearer())],
@@ -41,23 +44,24 @@ async def upload_attendee_photo_scan(
 
 @router.get(
     "",
-    dependencies=[Depends(HTTPBearer())],
-    response_model=List[AttendeeRead],
     summary="Get all Attendees",
 )
 async def get_all(
     *,
     db: Session = Depends(get_db),
+    request: Request,
     skip: int = 0,
     limit: int = 100,
-    Authorize: AuthJWT = Depends()
 ):
     """
     Get all Attendees
 
     """
-    Authorize.jwt_required()
-    return attendee_service.get_multi(db, skip, limit)
+
+    all_attendees = attendee_service.get_multi(db, skip, limit)
+    return templates.TemplateResponse(
+        request=request, name='all_attendees.html', context={'all_attendees': all_attendees}
+    )
 
 
 @router.post(

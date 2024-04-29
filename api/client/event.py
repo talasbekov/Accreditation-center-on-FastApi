@@ -1,7 +1,8 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status, Request
-from fastapi.security import HTTPBearer
+from fastapi import APIRouter, Depends, status, Request, Security
+from fastapi.responses import HTMLResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 
@@ -9,11 +10,11 @@ from core import get_db, configs
 
 
 from schemas import EventRead, EventUpdate, EventCreate, EventReadWithAttendies
-from services import event_service
+from services import event_service, cookie_bearer
 
 
 router = APIRouter(
-    prefix="/events", tags=["Events"], dependencies=[Depends(HTTPBearer())]
+    prefix="/events", tags=["Events"], dependencies=[Depends(cookie_bearer)]
 )
 
 
@@ -24,23 +25,21 @@ async def download_event_zip(event_id: str, db: Session = Depends(get_db)):
 
 @router.get(
     "",
-    dependencies=[Depends(HTTPBearer())],
     response_model=List[EventRead],
     summary="Get all Events",
+    response_class=HTMLResponse
 )
 async def get_all(
     request: Request,
     *,
     db: Session = Depends(get_db),
     skip: int = 0,
-    limit: int = 100,
-    Authorize: AuthJWT = Depends()
+    limit: int = 10,
+    credentials: HTTPAuthorizationCredentials = Security(cookie_bearer)
 ):
     """
     Get all Events
-
     """
-    Authorize.jwt_required()
     events = event_service.get_multi(db, skip, limit)
     return configs.templates.TemplateResponse("events.html", {"request": request, "events": events})
 
@@ -121,6 +120,7 @@ async def delete(
     """
     Authorize.jwt_required()
     event_service.remove(db, str(id))
+
 
 @router.get(
     "/with_attendees/{id}/",

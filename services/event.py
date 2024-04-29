@@ -80,4 +80,5 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
         
         return event_read
 
+
 event_service = EventService(Event)

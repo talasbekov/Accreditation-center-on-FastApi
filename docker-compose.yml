@@ -1,24 +1,3 @@
-#version: '3'
-#
-#services:
-#  accreditation-center:
-#    platform: linux/amd64
-#    command: bash -c "uvicorn main:app --host 0.0.0.0 --port 8003 --log-config log.ini --workers ${NUMBER_OF_WORKERS}"
-#    build: .
-#    container_name: accreditation-center
-#    restart: always
-#    ports:
-#      - "8003:8003"
-#    volumes:
-#      - .:/app
-#    network_mode: "postgre"
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 4g
-
-version: '3'
-
 services:
 
   postgres:

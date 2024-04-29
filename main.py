@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.logger import logger as log
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException, JWTDecodeError
 from pydantic import ValidationError
@@ -16,7 +17,7 @@ from core import configs
 # from ws import notification_manager
 
 
-socket.setdefaulttimeout(15) # TODO: change to configs.SOCKET_TIMEOUT
+socket.setdefaulttimeout(15)  # TODO: change to configs.SOCKET_TIMEOUT
 
 app = FastAPI(
     title=configs.PROJECT_NAME,
@@ -50,6 +51,8 @@ app.include_router(router)
 
 # if configs.SENTRY_ENABLED:
 #     sentry_sdk.init(dsn=configs.SENTRY_DSN, traces_sample_rate=1.0)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @AuthJWT.load_config
@@ -85,7 +88,7 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 
 @app.get("/", include_in_schema=False)
 async def docs_redirect():
-    return RedirectResponse(url="/docs")
+    return RedirectResponse(url="/api/client/auth")
 
 
 # @app.websocket("/ws")

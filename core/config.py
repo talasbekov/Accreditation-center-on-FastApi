@@ -1,4 +1,5 @@
 from pydantic import BaseSettings, Extra
+from fastapi.templating import Jinja2Templates
 
 
 class Settings(BaseSettings):
@@ -15,6 +16,7 @@ class Settings(BaseSettings):
     POSTGRES_HOSTNAME: str
 
     AUTHJWT_SECRET_KEY: str
+    AUTHJWT_TOKEN_LOCATION: set = {"cookies"}
     REFRESH_TOKEN_EXPIRES_IN: int
     ACCESS_TOKEN_EXPIRES_IN: int
     JWT_ALGORITHM: str
@@ -26,6 +28,9 @@ class Settings(BaseSettings):
     SQLALCHEMY_ECHO: bool = False
 
     SENTRY_ENABLED: bool = False
+
+    templates = Jinja2Templates(directory="./templates")
+    authjwt_token_location: set = {"cookies"}
 
     class Config:
         extra = Extra.allow

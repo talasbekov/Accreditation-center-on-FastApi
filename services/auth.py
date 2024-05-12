@@ -1,9 +1,7 @@
 from datetime import timedelta, datetime
 
-from fastapi import HTTPException, status, Request
+from fastapi import HTTPException, status, Depends
 from fastapi_jwt_auth import AuthJWT
-from fastapi.security.http import HTTPAuthorizationCredentials, HTTPBearer
-from starlette.status import HTTP_403_FORBIDDEN
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
 
@@ -76,7 +74,7 @@ class AuthService:
         # Определение дополнительных утверждений для токена
         user_claims = {
             "role": str(user.workplace),
-            "iin": str(user.iin),
+            "email": str(user.email),
             "permissions": permissions,
         }
 
@@ -102,20 +100,13 @@ class AuthService:
         db.add(user)
         db.flush()
 
+    # Зависимость для аутентификации и получения данных пользователя
+    def get_current_user(self, Authorize: AuthJWT = Depends()):
+        Authorize.jwt_required()
+        user_id = Authorize.get_jwt_subject()
+        user_email = Authorize.get_raw_jwt()['email']
+        print(user_email)
+        return {"user_id": user_id, "user_email": user_email}
+
 
 auth_service = AuthService()
-
-
-class CookieToken:
-    def __init__(self):
-        self.scheme = HTTPBearer()
-
-    async def __call__(self, request: Request):
-        token = request.cookies.get("access_token")
-        if not token:
-            raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Not authenticated")
-        credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
-        return credentials
-
-
-cookie_bearer = CookieToken()

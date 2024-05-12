@@ -1,23 +1,21 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status
-from fastapi.security import HTTPBearer
+from fastapi import APIRouter, Depends, status, Request
+from fastapi.responses import HTMLResponse
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 
-from core import get_db
+from core import get_db, configs
 
 from schemas import UserRead, UserUpdate, UserCreate
 from services import user_service
-
 router = APIRouter(
-    prefix="/users", tags=["Users"], dependencies=[Depends(HTTPBearer())]
+    prefix="/users", tags=["Users"]
 )
 
 
 @router.get(
     "",
-    dependencies=[Depends(HTTPBearer())],
     response_model=List[UserRead],
     summary="Get all Users",
 )
@@ -37,7 +35,6 @@ async def get_all(
 
 
 @router.post("", status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(HTTPBearer())],
              response_model=UserRead,
              summary="Create User")
 async def create(*,
@@ -56,12 +53,11 @@ async def create(*,
 
 @router.get(
     "/{id}/",
-    dependencies=[Depends(HTTPBearer())],
-    response_model=UserRead,
-    summary="Get User by id",
+    summary="Get User's data",
+    response_class=HTMLResponse
 )
-async def get_by_id(
-    *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
+async def get_data_of_user(
+    *, request: Request, Authorize: AuthJWT = Depends()
 ):
     """
     Get User by id
@@ -69,12 +65,15 @@ async def get_by_id(
     - **id**: UUID - required.
     """
     Authorize.jwt_required()
-    return user_service.get_by_id(db, str(id))
+    user = Authorize.get_jwt_subject()
+    user_email = Authorize.get_raw_jwt()['email']
+    print(user_email)
+    return configs.templates.TemplateResponse("base.html",
+                                              {"request": request, "user": user, "user_email": user_email})
 
 
 @router.put(
     "/{id}/",
-    dependencies=[Depends(HTTPBearer())],
     response_model=UserRead,
     summary="Update User",
 )
@@ -98,7 +97,6 @@ async def update(
 @router.delete(
     "/{id}/",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(HTTPBearer())],
     summary="Delete User",
 )
 async def delete(

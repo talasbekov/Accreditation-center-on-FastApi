@@ -1,8 +1,8 @@
+from datetime import date
 from typing import List
 
-from fastapi import APIRouter, Depends, status, Request, Security
-from fastapi.responses import HTMLResponse
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import APIRouter, Depends, status, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 
@@ -10,11 +10,11 @@ from core import get_db, configs
 
 
 from schemas import EventRead, EventUpdate, EventCreate, EventReadWithAttendies
-from services import event_service, cookie_bearer
-
+from services import event_service, city_service
+from exceptions import InvalidOperationException, BadRequestException
 
 router = APIRouter(
-    prefix="/events", tags=["Events"], dependencies=[Depends(cookie_bearer)]
+    prefix="/events", tags=["Events"]
 )
 
 
@@ -35,37 +35,97 @@ async def get_all(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 10,
-    credentials: HTTPAuthorizationCredentials = Security(cookie_bearer)
+    Authorize: AuthJWT = Depends()
 ):
     """
     Get all Events
     """
+    Authorize.jwt_required()
+    user = Authorize.get_jwt_subject()
+    user_email = Authorize.get_raw_jwt()['email']
     events = event_service.get_multi(db, skip, limit)
-    return configs.templates.TemplateResponse("events.html", {"request": request, "events": events})
+    return configs.templates.TemplateResponse(
+        "events.html",
+        {
+            "request": request,
+            "events": events,
+            "user": user,
+            "user_email": user_email
+        }
+    )
+
+
+@router.get(
+    "/create",
+    response_model=EventRead,
+    summary="Create Event",
+    response_class=HTMLResponse
+)
+async def create_form(
+    *,
+    request: Request,
+    db: Session = Depends(get_db),
+    Authorize: AuthJWT = Depends()
+):
+    """
+    Create Event
+    - **name**: required
+    """
+    Authorize.jwt_required()
+    user_email = Authorize.get_raw_jwt()['email']
+    cities = city_service.get_multi(db)
+    try:
+        return configs.templates.TemplateResponse(
+            "create_event.html",
+            {
+                "request": request,
+                "cities": cities,
+                "user_email": user_email
+            }
+        )
+    except Exception as e:
+        raise InvalidOperationException(
+            detail=f"Failed to create event: {str(e)}"
+        )
 
 
 @router.post(
-    "",
+    "/create/event",
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(HTTPBearer())],
     response_model=EventRead,
     summary="Create Event",
 )
 async def create(
-    *, db: Session = Depends(get_db), body: EventCreate, Authorize: AuthJWT = Depends()
+    *, db: Session = Depends(get_db),
+    request: Request,
+    name: str = Form(...),
+    lead: str = Form(...),
+    event_code: str = Form(...),
+    date_start: date = Form(...),
+    date_end: date = Form(...),
+    city_id: str = Form(...),
+    Authorize: AuthJWT = Depends()
 ):
-    """
-    Create Event
-
-    - **name**: required
-    """
     Authorize.jwt_required()
-    return event_service.create(db, body)
+
+    body = EventCreate(
+        name=name,
+        lead=lead,
+        event_code=event_code,
+        date_start=date_start,
+        date_end=date_end,
+        city_id=city_id
+    )
+    try:
+        event_service.create(db, body)
+        return RedirectResponse(url="/api/client/events", status_code=status.HTTP_303_SEE_OTHER)
+    except BadRequestException as e:
+        return configs.templates.TemplateResponse("create_event.html", {"request": request, "error": str(e)})
+
 
 
 @router.get(
     "/{id}/",
-    dependencies=[Depends(HTTPBearer())],
     response_model=EventRead,
     summary="Get Event by id",
 )
@@ -83,7 +143,6 @@ async def get_by_id(
 
 @router.put(
     "/{id}/",
-    dependencies=[Depends(HTTPBearer())],
     response_model=EventRead,
     summary="Update Event",
 )
@@ -107,7 +166,6 @@ async def update(
 @router.delete(
     "/{id}/",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(HTTPBearer())],
     summary="Delete Event",
 )
 async def delete(
@@ -124,11 +182,10 @@ async def delete(
 
 @router.get(
     "/with_attendees/{id}/",
-    dependencies=[Depends(HTTPBearer())],
     response_model=EventReadWithAttendies,
     summary="Get Event with Attendees",
 )
-async def get_by_id_with_attedees(
+async def get_by_id_with_attendees(
     *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
 ):
     """

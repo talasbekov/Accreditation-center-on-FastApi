@@ -8,4 +8,4 @@ from .event import event_service
 from .request import request_service
 from .sex import sex_service
 from .user import user_service
-from .auth import auth_service, cookie_bearer
+from .auth import auth_service

@@ -1,26 +1,25 @@
-# from typing import List
+from typing import List
 
 from fastapi import APIRouter, Depends, status, UploadFile, File, Request
-from fastapi.security import HTTPBearer
+
+from fastapi.responses import HTMLResponse
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 
-from core import get_db
-# from exceptions import NotFoundException
-# from models import Attendee
+from core import get_db, configs
 
 from schemas import AttendeeRead, AttendeeUpdate, AttendeeCreate
 from services import attendee_service
 
 router = APIRouter(
-    prefix="/attendee", tags=["Attendees"], dependencies=[Depends(HTTPBearer())]
+    prefix="/attendee", tags=["Attendees"]
 )
 
 templates = Jinja2Templates(directory='templates')
 
 
-@router.post("/{attendee_id}/upload-photo/", dependencies=[Depends(HTTPBearer())],
+@router.post("/{attendee_id}/upload-photo/",
              summary="Upload Image File")
 async def upload_attendee_photo(
     attendee_id: str,
@@ -31,7 +30,7 @@ async def upload_attendee_photo(
     return attendee
 
 
-@router.post("/{attendee_id}/upload-photo-scan/", dependencies=[Depends(HTTPBearer())],
+@router.post("/{attendee_id}/upload-photo-scan/",
              summary="Upload Image File")
 async def upload_attendee_photo_scan(
     attendee_id: str,
@@ -43,8 +42,10 @@ async def upload_attendee_photo_scan(
 
 
 @router.get(
-    "",
-    summary="Get all Attendees",
+    "/all",
+    response_model=List[AttendeeRead],
+    summary="Get all Attendees by request",
+    response_class=HTMLResponse
 )
 async def get_all(
     *,
@@ -52,24 +53,30 @@ async def get_all(
     request: Request,
     skip: int = 0,
     limit: int = 100,
+    Authorize: AuthJWT = Depends()
 ):
     """
-    Get all Attendees
-
+    Get all Requests
     """
-
-    all_attendees = attendee_service.get_multi(db, skip, limit)
-    return templates.TemplateResponse(
-        request=request, name='all_attendees.html', context={'all_attendees': all_attendees}
+    Authorize.jwt_required()
+    user_email = Authorize.get_raw_jwt()['email']
+    attendees = attendee_service.get_multi(db, skip, limit)
+    return configs.templates.TemplateResponse(
+        "all_attendees.html",
+        {
+            "request": request,
+            "attendees": attendees,
+            "user_email": user_email
+        }
     )
 
 
 @router.post(
     "",
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(HTTPBearer())],
     response_model=AttendeeRead,
     summary="Create Position",
+    response_class=HTMLResponse
 )
 async def create(
     *,
@@ -83,12 +90,12 @@ async def create(
     - **name**: required
     """
     Authorize.jwt_required()
-    return attendee_service.create(db, body)
+    attendee = attendee_service.create(db, body)
+    return attendee
 
 
 @router.get(
     "/{id}/",
-    dependencies=[Depends(HTTPBearer())],
     response_model=AttendeeRead,
     summary="Get Attendee by id",
 )
@@ -106,7 +113,6 @@ async def get_by_id(
 
 @router.put(
     "/{id}/",
-    dependencies=[Depends(HTTPBearer())],
     response_model=AttendeeRead,
     summary="Update Attendee",
 )
@@ -130,7 +136,6 @@ async def update(
 @router.delete(
     "/{id}/",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(HTTPBearer())],
     summary="Delete Attendee",
 )
 async def delete(

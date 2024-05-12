@@ -57,6 +57,7 @@ def upgrade() -> None:
         sa.Column('date_start', sa.Date, nullable=True),
         sa.Column('date_end', sa.Date, nullable=True),
         sa.Column('city_id', sa.String(), sa.ForeignKey('cities.id'), nullable=True),
+        sa.Column('lead', sa.String(length=30), nullable=True),
         sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now()),
         # sa.PrimaryKeyConstraint('id')

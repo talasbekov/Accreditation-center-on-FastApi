@@ -33,103 +33,24 @@
                       </a>
                     </td>
                     <td>
-                      <h6 class="mb-1">Астана</h6>
+                      <h6 class="mb-1">{{ event.cities.name }}</h6>
                       <span class="text-secondary fs-7">Казахстан</span>
                     </td>
                     <td>
-                      <a href="requests.html">
-                        27
+                      <a href="/api/client/requests">
+                        {{ event.requests|length }}
                       </a>
                     </td>
                     <td>
-                      <a href="all_attendees.html">
-                        1359
+                      <a href="/api/client/attendee/all">
+                        {{ event.requests.attendees|length }}
                       </a>
                     </td>
-                    <td>14-04-2024</td>
-                    <td>16-04-2024</td>
-                    <td>Таласбеков Е.А.</td>
+                    <td>{{ event.date_start }}</td>
+                    <td>{{ event.date_end }}</td>
+                    <td>{{ event.lead }}</td>
                   </tr>
                 {% endfor %}
-                  <tr>
-                    <td>
-                      <a href="#">
-                        <h6 class="mb-1">#902</h6>
-                        <span class="text-secondary fs-7">АНК</span>
-                      </a>
-                      
-                    </td>
-                    <td>
-                      <h6 class="mb-1">Астана</h6>
-                      <span class="text-secondary fs-7">Казахстан</span>
-                    </td>
-                    <td>
-                      <a href="requests.html">
-                        27
-                      </a>
-                    </td>
-                    <td>
-                      <a href="all_attendees.html">
-                        1359
-                      </a>
-                    </td>
-                    <td>14-04-2024</td>
-                    <td>16-04-2024</td>
-                    <td>Таласбеков Е.А.</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <a href="#">
-                        <h6 class="mb-1">#903</h6>
-                        <span class="text-secondary fs-7">ШОС 2</span>
-                      </a>
-                      
-                    </td>
-                    <td>
-                      <h6 class="mb-1">Астана</h6>
-                      <span class="text-secondary fs-7">Казахстан</span>
-                    </td>
-                    <td>
-                      <a href="requests.html">
-                        27
-                      </a>
-                    </td>
-                    <td>
-                      <a href="all_attendees.html">
-                        1359
-                      </a>
-                    </td>
-                    <td>14-04-2024</td>
-                    <td>16-04-2024</td>
-                    <td>Таласбеков Е.А.</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <a href="#">
-                        <h6 class="mb-1">#904</h6>
-                        <span class="text-secondary fs-7">ШОС 3</span>
-                      </a>
-                      
-                    </td>
-                    <td>
-                      <h6 class="mb-1">Астана</h6>
-                      <span class="text-secondary fs-7">Казахстан</span>
-                    </td>
-                    <td>
-                      <a href="requests.html">
-                        27
-                      </a>
-                    </td>
-                    <td>
-                      <a href="all_attendees.html">
-                        1359
-                      </a>
-                    </td>
-                    <td>14-04-2024</td>
-                    <td>16-04-2024</td>
-                    <td>Таласбеков Е.А.</td>
-                  </tr>
-
                 </tbody>
               </table>
             </div>

@@ -1,11 +1,12 @@
 import time
 import socket
+import logging
 
 # import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.logger import logger as log
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException, JWTDecodeError
@@ -14,8 +15,12 @@ from pydantic import ValidationError
 
 from api import router
 from core import configs
+from services import auth_service
 # from ws import notification_manager
 
+
+# Настройка логирования
+logg = logging.getLogger(__name__)
 
 socket.setdefaulttimeout(15)  # TODO: change to configs.SOCKET_TIMEOUT
 
@@ -60,13 +65,27 @@ def get_config():
     return configs
 
 
+# Middleware для добавления времени обработки и данных пользователя
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
-    log.debug(f"Request: {request.method} {request.url} {request.client.host}")
+    logg.debug(f"Request: {request.method} {request.url} {request.client.host}")
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
+
+    # Проверяем, что ответ является HTMLResponse и нужно добавить информацию о пользователе
+    if isinstance(response, HTMLResponse):
+        try:
+            # Имитация получения данных пользователя
+            user_data = auth_service.get_current_user()  # Здесь предполагается синхронный вызов для примера
+            # В реальности может потребоваться асинхронный вызов с await
+            # Добавляем данные пользователя в контекст шаблона
+            new_content = configs.templates.TemplateResponse("base.html", {"request": request, **user_data, "content": response.body.decode()})
+            response.body = new_content.body
+            response.headers.update(new_content.headers)
+        except Exception as e:
+            log.error(f"Error adding user data to the response: {e}")
 
     return response
 

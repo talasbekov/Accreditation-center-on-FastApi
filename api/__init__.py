@@ -11,5 +11,4 @@ async def get_ip(request: Request):
     return request.client.host
 
 
-router.include_router(v1_router)
 router.include_router(client_router)

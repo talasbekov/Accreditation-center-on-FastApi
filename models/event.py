@@ -13,6 +13,7 @@ class Event(NamedModel):
     date_start = Column(Date)
     date_end = Column(Date)
     city_id = Column(String(), ForeignKey("cities.id"), nullable=True)
+    lead = Column(String(length=30))
 
     cities = relationship("City", back_populates="events")
     requests = relationship("Request", back_populates="events")

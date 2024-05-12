@@ -1,7 +1,10 @@
+from datetime import datetime
 from pathlib import Path
+from typing import Optional, Type, Union, Dict, Any
 
 from fastapi import UploadFile
-from typing import Optional, Type
+from fastapi.encoders import jsonable_encoder
+
 from sqlalchemy.orm import Session
 
 # from exceptions import NotFoundException
@@ -11,10 +14,14 @@ from services.base import ServiceBase
 
 import aiofiles
 
+
 class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
 
     def get_by_name(self, db: Session, name: str) -> Optional[Attendee]:
         return db.query(Attendee).filter(Attendee.name == name).first()
+
+    async def get_by_request(self, db: Session, req_id: str) -> Optional[Attendee]:
+        return db.query(self.model).filter(self.model.request_id == req_id).first()
 
     async def upload_photo(self, db: Session, attendee_id: str, photo: UploadFile) -> Type[Attendee]:
         attendee = db.query(Attendee).filter(Attendee.id == attendee_id).first()
@@ -46,7 +53,7 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
         db.refresh(attendee)
 
         return attendee
-    
+
     async def upload_photo_scan(self, db: Session, attendee_id: str, photo: UploadFile) -> Type[Attendee]:
         attendee = db.query(Attendee).filter(Attendee.id == attendee_id).first()
         events = attendee.requests.events.id
@@ -78,8 +85,13 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
 
         return attendee
 
-
-
+    def create(self, db: Session, obj_in: Union[AttendeeCreate, Dict[str, Any]], **kwargs) -> Attendee:
+        obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data['assignment_date'] = datetime.strptime(obj_in_data['assignment_date'], '%Y-%m-%d')
+        db_obj = self.model(**obj_in_data)
+        db.add(db_obj)
+        db.flush()
+        return db_obj
 
 
 attendee_service = AttendeeService(Attendee)

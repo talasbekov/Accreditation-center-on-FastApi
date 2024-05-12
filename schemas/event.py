@@ -1,8 +1,6 @@
 from typing import Optional
 from datetime import date
-from schemas import ReadNamedModel, NamedModel
-from .request import RequestRead
-from .attendee import AttendeeRead
+from schemas import ReadNamedModel, NamedModel, UserRead, RequestRead, AttendeeRead
 from typing import List
 
 
@@ -12,7 +10,8 @@ class EventBase(NamedModel):
     date_start: Optional[date]
     date_end: Optional[date]
     city_id: Optional[str]
-    number: Optional[int]
+    lead: Optional[str]
+    user_id: Optional[List[UserRead]]
 
 
 class EventCreate(EventBase):
@@ -25,6 +24,7 @@ class EventUpdate(EventBase):
 
 class EventRead(EventBase, ReadNamedModel):
     requests: Optional[List[RequestRead]]
+
 
 class EventReadWithAttendies(EventBase):
     attendees: Optional[List[AttendeeRead]]

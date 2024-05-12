@@ -13,6 +13,7 @@ import shutil
 import os
 from .request import request_service
 
+
 def model_to_dict(model_instance):
     """Convert an SQLAlchemy model instance into a dictionary."""
     return {attr: getattr(model_instance, attr) for attr in dir(model_instance)

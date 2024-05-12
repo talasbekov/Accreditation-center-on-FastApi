@@ -30,11 +30,15 @@ async def login(
     form = LoginForm(email=email, password=password)  # Создаем объект модели
     try:
         auth = auth_service.login(form, db, Authorize)
+        try:
+            Authorize.set_access_cookies(auth["access_token"])
+        except Exception as e:
+            print(e)
         # Установка токенов в куки для использования в последующих запросах
         print(auth["access_token"])
         response = RedirectResponse(url="/api/client/events", status_code=status.HTTP_303_SEE_OTHER)
         response.set_cookie(
-            key="access_token",
+            key="access_token_cookie",
             value=auth["access_token"],
             httponly=True,
             path='/',

@@ -16,4 +16,8 @@ class RequestService(ServiceBase[Request, RequestCreate, RequestUpdate]):
     def get_by_event_id(self, db: Session, event_id: str):
         return db.query(Request).filter(Request.event_id == event_id).all()
 
+    # def get_all_att_by_req(self, db: Session, event_id: str):
+    #     return db.query(Request).filter(Request.event_id == event_id).all()
+
+
 request_service = RequestService(Request)

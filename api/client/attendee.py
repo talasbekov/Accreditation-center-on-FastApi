@@ -8,8 +8,9 @@ from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 
 from core import get_db, configs
+from exceptions import InvalidOperationException
 
-from schemas import AttendeeRead, AttendeeUpdate, AttendeeCreate
+from schemas import AttendeeRead, AttendeeUpdate
 from services import attendee_service
 
 router = APIRouter(
@@ -71,27 +72,34 @@ async def get_all(
     )
 
 
-@router.post(
-    "",
-    status_code=status.HTTP_201_CREATED,
-    response_model=AttendeeRead,
-    summary="Create Position",
+@router.get(
+    "/create",
+    summary="Create Attendee",
     response_class=HTMLResponse
 )
-async def create(
+async def create_form(
     *,
-    db: Session = Depends(get_db),
-    body: AttendeeCreate,
+    request: Request,
     Authorize: AuthJWT = Depends()
 ):
     """
     Create Attendee
-
     - **name**: required
     """
     Authorize.jwt_required()
-    attendee = attendee_service.create(db, body)
-    return attendee
+    user_email = Authorize.get_raw_jwt()['email']
+    try:
+        return configs.templates.TemplateResponse(
+            "create_attendee.html",
+            {
+                "request": request,
+                "user_email": user_email
+            }
+        )
+    except Exception as e:
+        raise InvalidOperationException(
+            detail=f"Failed to create event: {str(e)}"
+        )
 
 
 @router.get(

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Registration 2 - Bootstrap Brain Component -->
+<div class="bg-light py-3 py-md-5">
+    <div class="container">
+        <div class="row justify-content-md-center">
+            <div class="col-12 col-md-9 col-lg-10 col-xl-9 col-xxl-8">
+                <div class="bg-white p-4 p-md-5 rounded shadow-sm">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="mb-5">
+                                <h2 class="h3">Добавить участника</h2>
+                                <h3 class="fs-6 fw-normal text-secondary m-0">Введите данные участника мероприятия</h3>
+                            </div>
+                        </div>
+                    </div>
+                    {% if error %}
+                    <div style="color: red;">
+                        <p>{{ error }}</p>
+                    </div>
+                    {% endif %}
+                    <form action="/api/client/auth/register/user" method="post">
+                        <div class="row gy-6 gy-md-4 overflow-hidden">
+                            <div class="col-12 col-md-3">
+                                <label for="surname" class="form-label">Фамилия <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="surname" id="surname" placeholder="Таласбеков" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label for="firstname" class="form-label">Имя <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="firstname" id="firstname" placeholder="Ердаулет" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label for="patronymic" class="form-label">Отчество<span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="patronymic" id="patronymic" placeholder="Арыстанбекулы" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label for="transcription" class="form-label">ФИО на латинице<span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="transcription" id="transcription" placeholder="Арыстанбекулы" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                              <label for="birth_date" class="form-label">Дата рождения <span class="text-danger">*</span></label>
+                              <input type="date" class="form-control" name="birth_date" id="birth_date" placeholder="Дата рождения" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                              <label for="doc_type_id" class="form-label">Тип документа <span class="text-danger">*</span></label>
+                              <select class="form-control" name="doc_type_id" id="doc_type_id" required>
+                                  <option value="">Выбрать тип документа</option>
+                                  {% for document_type in document_types %}
+                                  <option value="{{ document_type.id }}">{{ document_type.name }}</option>
+                                  {% endfor %}
+                              </select>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label for="iin" class="form-label">ИИН <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="iin" id="iin" placeholder="950223300144" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label for="doc_series" class="form-label">Серия документа <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="doc_series" id="doc_series" placeholder="Серия документа">
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label for="doc_number" class="form-label">Номер документа <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="doc_number" id="doc_number" placeholder="123456789" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                              <label for="doc_begin" class="form-label">Дата выдачи <span class="text-danger">*</span></label>
+                              <input type="date" class="form-control" name="doc_begin" id="doc_begin" placeholder="Дата выдачи" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                              <label for="doc_end" class="form-label">Дата окончания <span class="text-danger">*</span></label>
+                              <input type="date" class="form-control" name="doc_end" id="doc_end" placeholder="Дата окончания" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label for="doc_issue" class="form-label">Кем выдано <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="doc_issue" id="doc_issue" placeholder="МВД РК">
+                            </div>
+                            <div class="col-12">
+                                <label for="post" class="form-label">Должность<span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="post" id="post" placeholder="РукАП" required>
+                            </div>
+                            <div class="col-12 col-md-3">
+                              <label for="sex_id" class="form-label">Пол <span class="text-danger">*</span></label>
+                              <select class="form-control" name="sex_id" id="sex_id" required>
+                                  <option value="">Выбрать пол</option>
+                                  {% for sex in sexes %}
+                                  <option value="{{ sex.id }}">{{ sex.name }}</option>
+                                  {% endfor %}
+                              </select>
+                            </div>
+                            <div class="col-12 col-md-3">
+                              <label for="country_id" class="form-label">Страна <span class="text-danger">*</span></label>
+                              <select class="form-control" name="country_id" id="country_id" required>
+                                  <option value="">Выбрать страну</option>
+                                  {% for country in countries %}
+                                  <option value="{{ country.id }}">{{ country.name }}</option>
+                                  {% endfor %}
+                              </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="visit_object" class="form-label">Посещаемый объект <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="visit_object" id="visit_object" placeholder="Конгресс-центр">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="photo" class="form-label">Загрузите фото <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control" name="photo" id="photo" required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label for="doc_scan" class="form-label">Загрузите скан документа <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control" name="doc_scan" id="doc_scan" required>
+                            </div>
+
+                            <div class="col-12 col-md-8">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" value="" name="iAgree" id="iAgree" required>
+                                    <label class="form-check-label text-secondary" for="iAgree">
+                                        Я согласен с обработкой <a href="#!" class="link-primary text-decoration-none">персональных данных</a> СГО РК
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-grid mt-3">
+                                    <button class="btn btn-lg btn-primary" type="submit">Добавить участника</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

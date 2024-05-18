@@ -10,7 +10,7 @@
                     <div class="row">
                         <div class="col-12">
                             <div class="mb-5">
-                                <h2 class="h3">Добавить участника</h2>
+                                <h2 class="h3">Добавить участника в заявку {{ request_id.name }}</h2>
                                 <h3 class="fs-6 fw-normal text-secondary m-0">Введите данные участника мероприятия</h3>
                             </div>
                         </div>
@@ -20,7 +20,7 @@
                         <p>{{ error }}</p>
                     </div>
                     {% endif %}
-                    <form action="/api/client/auth/register/user" method="post">
+                    <form action="/api/client/attendee/create/attendee" method="post">
                         <div class="row gy-6 gy-md-4 overflow-hidden">
                             <div class="col-12 col-md-3">
                                 <label for="surname" class="form-label">Фамилия <span class="text-danger">*</span></label>

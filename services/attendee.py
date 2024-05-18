@@ -25,7 +25,6 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
         for req in requests:
             req_attendees = req.attendees
             attendees.append(req_attendees)
-        print(attendees)
         return attendees
 
     async def get_by_request(self, db: Session, req_id: str) -> Optional[Attendee]:
@@ -33,23 +32,14 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
 
     async def upload_photo(self, db: Session, attendee_id: str, photo: UploadFile) -> Type[Attendee]:
         attendee = db.query(Attendee).filter(Attendee.id == attendee_id).first()
-        events = attendee.requests.events.id
-        print(events)
+
         if not attendee.requests:
             event_number = 'default'
         else:
             event_number = attendee.requests.events.id
 
-        print(photo.filename)
-        # for req in attendee.requests:
-        #     print(req)
         file_location = Path(f"media/event_{event_number}/attendee_photos/{photo.filename}")
         file_location.parent.mkdir(parents=True, exist_ok=True)  # Создаем директории, если они не существуют
-
-        # with photo.file as file_like:
-        #     file_contents = file_like.read()  # This is now a blocking call
-        #     with open(file_location, "wb") as file_object:
-        #         file_object.write(file_contents)
 
         async with aiofiles.open(file_location, "wb") as file_object:
             # Assuming 'photo.file' supports async read
@@ -62,25 +52,16 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
 
         return attendee
 
-    async def upload_photo_scan(self, db: Session, attendee_id: str, photo: UploadFile) -> Type[Attendee]:
+    async def upload_doc_scan(self, db: Session, attendee_id: str, photo: UploadFile) -> Type[Attendee]:
         attendee = db.query(Attendee).filter(Attendee.id == attendee_id).first()
-        events = attendee.requests.events.id
-        print(events)
+
         if not attendee.requests:
             event_number = 'default'
         else:
             event_number = attendee.requests.events.id
 
-        print(photo.filename)
-        # for req in attendee.requests:
-        #     print(req)
         file_location = Path(f"media/event_{event_number}/attendee_documents/{photo.filename}")
         file_location.parent.mkdir(parents=True, exist_ok=True)  # Создаем директории, если они не существуют
-
-        # with photo.file as file_like:
-        #     file_contents = file_like.read()  # This is now a blocking call
-        #     with open(file_location, "wb") as file_object:
-        #         file_object.write(file_contents)
 
         async with aiofiles.open(file_location, "wb") as file_object:
             # Assuming 'photo.file' supports async read
@@ -95,7 +76,9 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
 
     def create(self, db: Session, obj_in: Union[AttendeeCreate, Dict[str, Any]], **kwargs) -> Attendee:
         obj_in_data = jsonable_encoder(obj_in)
-        obj_in_data['assignment_date'] = datetime.strptime(obj_in_data['assignment_date'], '%Y-%m-%d')
+        obj_in_data['birth_date'] = datetime.strptime(obj_in_data['birth_date'], '%Y-%m-%d')
+        obj_in_data['doc_begin'] = datetime.strptime(obj_in_data['doc_begin'], '%Y-%m-%d')
+        obj_in_data['doc_end'] = datetime.strptime(obj_in_data['doc_end'], '%Y-%m-%d')
         db_obj = self.model(**obj_in_data)
         db.add(db_obj)
         db.flush()

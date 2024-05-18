@@ -21,6 +21,7 @@
                     <th>Дата начало</th>
                     <th>Дата окончание</th>
                     <th>Старший наряда</th>
+                    <th>Д/у</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -49,6 +50,7 @@
                     <td>{{ event.date_start }}</td>
                     <td>{{ event.date_end }}</td>
                     <td>{{ event.lead }}</td>
+                    <td><a href="{{ url_for('create_attendee_form', event_id=event.id) }}"><img src="{{ url_for('static', path='/img/plus.svg') }}" height="30px" width="30px"></a></td>
                   </tr>
                 {% endfor %}
                 </tbody>

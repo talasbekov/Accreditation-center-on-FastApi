@@ -85,8 +85,8 @@ def upgrade() -> None:
     
     op.create_table(
         'users_events',
-        sa.Column('user_id', sa.String(length=36), sa.ForeignKey('users.id'), primary_key=True),
-        sa.Column('event_id', sa.String(length=36), sa.ForeignKey('events.id'), primary_key=True)
+        sa.Column('user_id', sa.String(length=36), sa.ForeignKey('users.id'), primary_key=True, nullable=True),
+        sa.Column('event_id', sa.String(length=36), sa.ForeignKey('events.id'), primary_key=True, nullable=True)
     )
     
     op.create_table(

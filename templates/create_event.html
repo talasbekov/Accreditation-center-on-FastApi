@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-
 {% block content %}
 <!-- Registration 2 - Bootstrap Brain Component -->
 <div class="bg-light py-3 py-md-5">
+
     <div class="container">
       <div class="row justify-content-md-center">
         <div class="col-12 col-md-11 col-lg-8 col-xl-7 col-xxl-6">
@@ -45,6 +45,17 @@
                       {% for city in cities %}
                       <option value="{{ city.id }}">{{ city.name }}</option>
                       {% endfor %}
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label for="users" class="form-label">Прикрепить пользователей <span class="text-danger">*</span></label>
+                  <select class="form-control" name="users" id="users">
+                      <option value="">Выберите пользователей</option>
+                      {% for u in users %}
+
+                            <option value="{{ u.id }}">{{ u.name }}</option>
+
+                    {% endfor %}
                   </select>
                 </div>
                 <div class="col-12">

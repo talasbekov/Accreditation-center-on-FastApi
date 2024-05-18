@@ -9,6 +9,7 @@ from core import get_db, configs
 from exceptions import BadRequestException
 from schemas import LoginForm, RegistrationForm
 from services import auth_service
+import secrets
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])
 
@@ -21,11 +22,11 @@ async def get_login_form(request: Request):
 
 @router.post("/login", summary="Login")
 async def login(
-    request: Request,
-    email: EmailStr = Form(...),  # Получаем каждое поле через Form
-    password: str = Form(...),
-    db: Session = Depends(get_db),
-    Authorize: AuthJWT = Depends()
+        request: Request,
+        email: EmailStr = Form(...),  # Получаем каждое поле через Form
+        password: str = Form(...),
+        db: Session = Depends(get_db),
+        Authorize: AuthJWT = Depends()
 ):
     form = LoginForm(email=email, password=password)  # Создаем объект модели
     try:
@@ -45,39 +46,66 @@ async def login(
             secure=True,
             samesite='Lax'
         )
+        response.set_cookie(
+            key="X-CSRF-Token",
+            value=secrets.token_urlsafe(),
+            httponly=True,
+            path='/',
+            secure=True,
+            samesite='Lax'
+        )
         return response
     except BadRequestException as e:
         # В случае ошибки возвращаем пользователя на форму входа с сообщением об ошибке
         return configs.templates.TemplateResponse("login_form.html", {"request": request, "error": str(e)})
 
 
-@router.post("/register", summary="Register")
-async def register(form: RegistrationForm, db: Session = Depends(get_db)):
-    """
-    Register new user to the system.
+# @router.post("/register", summary="Register")
+# async def register(form: RegistrationForm, db: Session = Depends(get_db)):
 
-    - **email**: string required and should be a valid email format.
-    - **first_name**: required.
-    - **last_name**: required.
-    - **father_name**: optional.
-    - **group_id**: UUID - required and should exist in the database
-    - **position_id**: UUID - required and should exist in the database.
-    - **icon**: image with url format. This parameter is optional.
-    - **call_sign**: required.
-    - **id_number**: unique employee number. This parameter is required.
-    - **phone_number**: format (+77xxxxxxxxx). This parameter is optional.
-    - **address**: optional.
-    - **birthday**: format (YYYY-MM-DD). This parameter is optional.
-    - **status**: the current status of the employee
-    (e.g. "working", "on vacation", "sick", etc.). This parameter is optional.
-    - **status_till**: the date when the current status of the employee will end.
-        This parameter is optional.
-    - **role_name**: required.
-    - **password**: required.
-    - **re_password**: required and should match the password field.
-    """
-    return auth_service.register(form, db)
-
+@router.post(
+    "/register/user",
+    status_code=status.HTTP_201_CREATED,
+    summary="Create User",
+)
+async def create(
+    *, db: Session = Depends(get_db),
+    request: Request,
+    Authorize: AuthJWT = Depends(),
+    name: str = Form(...),
+    email: EmailStr = Form(...),
+    workplace: str = Form(...),
+    iin: int = Form(...),
+    phone_number: str = Form(...),
+    password: str = Form(),
+    re_password: str = Form()
+):
+    Authorize.jwt_required()
+    user_email = Authorize.get_raw_jwt()['email']
+    form = RegistrationForm(
+        name=name,
+        email=email,
+        workplace=workplace,
+        iin=iin,
+        phone_number=phone_number,
+        password=password,
+        re_password=re_password
+    )
+    try:
+        db_obj = auth_service.register(db, form)
+        db.add(db_obj)
+        db.commit()  # Commit the transaction
+        return RedirectResponse(url="/api/client/users", status_code=status.HTTP_303_SEE_OTHER)
+    except BadRequestException as e:
+        db.rollback()  # Roll back the transaction on error
+        error_message = str(e)
+        return configs.templates.TemplateResponse(
+            "create_user.html", {
+                "request": request,
+                "error": error_message,
+                "user_email": user_email
+            }
+        )
 
 # @router.post("/register/user", summary="Register User",
 #              dependencies=[Depends(HTTPBearer())])

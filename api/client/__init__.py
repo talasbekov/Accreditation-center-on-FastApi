@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from .base import router as base_router
 from .auth import router as auth_router
 from .user import router as user_router
 from .attendee import router as attendee_router
@@ -13,6 +14,7 @@ from .sex import router as sex_router
 
 router = APIRouter(prefix="/client")
 
+router.include_router(base_router)
 router.include_router(auth_router)
 router.include_router(user_router)
 router.include_router(attendee_router)

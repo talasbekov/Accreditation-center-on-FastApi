@@ -7,8 +7,7 @@ from fastapi.encoders import jsonable_encoder
 
 from sqlalchemy.orm import Session
 
-# from exceptions import NotFoundException
-from models import Attendee
+from models import Attendee, Request
 from schemas import AttendeeCreate, AttendeeUpdate
 from services.base import ServiceBase
 
@@ -19,6 +18,15 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
 
     def get_by_name(self, db: Session, name: str) -> Optional[Attendee]:
         return db.query(Attendee).filter(Attendee.name == name).first()
+
+    def get_attendees_by_event_id(self, db: Session, event_id: str, skip: int, limit: int):
+        requests = db.query(Request).filter(Request.event_id == event_id).offset(skip).limit(limit).all()
+        attendees = []
+        for req in requests:
+            req_attendees = req.attendees
+            attendees.append(req_attendees)
+        print(attendees)
+        return attendees
 
     async def get_by_request(self, db: Session, req_id: str) -> Optional[Attendee]:
         return db.query(self.model).filter(self.model.request_id == req_id).first()

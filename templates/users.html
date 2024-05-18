@@ -15,40 +15,40 @@
                 <thead>
                   <tr>
                     <th>Название</th>
-                    <th>Город</th>
-                    <th>Заявки</th>
-                    <th>Участники</th>
-                    <th>Дата начало</th>
-                    <th>Дата окончание</th>
-                    <th>Старший наряда</th>
+                    <th>Почта</th>
+                    <th>ИИН</th>
+                    <th>Номер телефона</th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                {% for event in events %}
+                {% for user in users %}
                   <tr>
                     <td>
-                      <a href="event_detail.html">
+                      <a href="user_detail.html">
                         <h6 class="mb-1">#900</h6>
-                        <span class="text-secondary fs-7">{{ event.name }}</span>
+                        <span class="text-secondary fs-7">{{ user.name }}</span>
                       </a>
                     </td>
                     <td>
-                      <h6 class="mb-1">{{ event.cities.name }}</h6>
+                      <h6 class="mb-1">{{ user.email }}</h6>
                       <span class="text-secondary fs-7">Казахстан</span>
                     </td>
                     <td>
-                      <a href="{{ url_for('get_requests_by_event_id', event_id=event.id) }}">
-                        {{ event.requests|length }}
+                      <a href="/api/client/requests">
+                        {{ user.iin }}
                       </a>
                     </td>
                     <td>
-                      <a href="{{ url_for('get_attendees_by_event_id', event_id=event.id) }}">
-                        {{ event.requests.attendees|length }}
+                      <a href="/api/client/attendee/all">
+                        {{ user.phone_number }}
                       </a>
                     </td>
-                    <td>{{ event.date_start }}</td>
-                    <td>{{ event.date_end }}</td>
-                    <td>{{ event.lead }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
                   </tr>
                 {% endfor %}
                 </tbody>

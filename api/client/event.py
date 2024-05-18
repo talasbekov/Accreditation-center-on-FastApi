@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 from core import get_db, configs
 
 
-from schemas import EventRead, EventUpdate, EventCreate, EventReadWithAttendies
-from services import event_service, city_service
+from schemas import EventRead, EventUpdate, EventCreate, EventReadWithAttendies, RequestRead
+from services import event_service, city_service, user_service, request_service, attendee_service
 from exceptions import InvalidOperationException, BadRequestException
 
 router = APIRouter(
@@ -40,6 +40,7 @@ async def get_all(
     """
     Get all Events
     """
+    print(request, "request_eventR")
     Authorize.jwt_required()
     user = Authorize.get_jwt_subject()
     user_email = Authorize.get_raw_jwt()['email']
@@ -50,6 +51,68 @@ async def get_all(
             "request": request,
             "events": events,
             "user": user,
+            "user_email": user_email
+        }
+    )
+
+
+@router.get(
+    "/event_{event_id}/requests",
+    response_model=List[RequestRead],
+    summary="Get all Attendees by request",
+    response_class=HTMLResponse
+)
+async def get_requests_by_event_id(
+    *,
+    db: Session = Depends(get_db),
+    request: Request,
+    event_id: str,
+    skip: int = 0,
+    limit: int = 100,
+    Authorize: AuthJWT = Depends()
+):
+    """
+    Get all Requests
+    """
+    Authorize.jwt_required()
+    user_email = Authorize.get_raw_jwt()['email']
+    requests = request_service.get_by_event_id(db, event_id, skip, limit)
+    return configs.templates.TemplateResponse(
+        "requests.html",
+        {
+            "request": request,
+            "requests": requests,
+            "user_email": user_email
+        }
+    )
+
+
+@router.get(
+    "/event_{event_id}/attendees",
+    response_model=List[RequestRead],
+    summary="Get all Attendees by request",
+    response_class=HTMLResponse
+)
+async def get_attendees_by_event_id(
+    *,
+    db: Session = Depends(get_db),
+    request: Request,
+    event_id: str,
+    skip: int = 0,
+    limit: int = 100,
+    Authorize: AuthJWT = Depends()
+):
+    """
+    Get all Attendees
+    """
+    Authorize.jwt_required()
+    user_email = Authorize.get_raw_jwt()['email']
+    attendees = attendee_service.get_attendees_by_event_id(db, event_id, skip, limit)
+    return configs.templates.TemplateResponse(
+        "all_attendees.html",
+        {
+            "request": request,
+            "attendees": attendees,
             "user_email": user_email
         }
     )
@@ -74,12 +137,14 @@ async def create_form(
     Authorize.jwt_required()
     user_email = Authorize.get_raw_jwt()['email']
     cities = city_service.get_multi(db)
+    users = user_service.get_multi(db)
     try:
         return configs.templates.TemplateResponse(
             "create_event.html",
             {
                 "request": request,
                 "cities": cities,
+                "users": users,
                 "user_email": user_email
             }
         )
@@ -98,16 +163,18 @@ async def create_form(
 async def create(
     *, db: Session = Depends(get_db),
     request: Request,
+    Authorize: AuthJWT = Depends(),
     name: str = Form(...),
     lead: str = Form(...),
     event_code: str = Form(...),
     date_start: date = Form(...),
     date_end: date = Form(...),
     city_id: str = Form(...),
-    Authorize: AuthJWT = Depends()
+    users: List[str] = Form(default=[])  # Set a default empty list if None
 ):
     Authorize.jwt_required()
-
+    user_email = Authorize.get_raw_jwt()['email']
+    users_objects = [user_service.get(db=db, id=user_id) for user_id in users if user_id]  # Ensure user_id is not None
     body = EventCreate(
         name=name,
         lead=lead,
@@ -117,11 +184,20 @@ async def create(
         city_id=city_id
     )
     try:
-        event_service.create(db, body)
+        db_obj = event_service.create(db, body)
+        db_obj.users = users_objects  # Assign the list of User objects
+        db.add(db_obj)
+        db.commit()  # Commit the transaction
         return RedirectResponse(url="/api/client/events", status_code=status.HTTP_303_SEE_OTHER)
     except BadRequestException as e:
-        return configs.templates.TemplateResponse("create_event.html", {"request": request, "error": str(e)})
-
+        db.rollback()  # Roll back the transaction on error
+        return configs.templates.TemplateResponse(
+            "create_event.html", {
+                "request": request,
+                "error": str(e),
+                "user_email": user_email
+            }
+        )
 
 
 @router.get(

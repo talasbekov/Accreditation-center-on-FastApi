@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRES_IN: int
     ACCESS_TOKEN_EXPIRES_IN: int
     JWT_ALGORITHM: str
+    authjwt_cookie_csrf_protect: bool = False
 
     DEBUG: bool = False
     SENTRY_DSN: str = None

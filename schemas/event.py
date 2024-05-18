@@ -1,7 +1,9 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import date
-from schemas import ReadNamedModel, NamedModel, UserRead, RequestRead, AttendeeRead
-from typing import List
+from schemas import ReadNamedModel, NamedModel
+from .request import RequestRead
+from .attendee import AttendeeRead
+from .user import UserRead
 
 
 # Схема для Event
@@ -11,7 +13,7 @@ class EventBase(NamedModel):
     date_end: Optional[date]
     city_id: Optional[str]
     lead: Optional[str]
-    user_id: Optional[List[UserRead]]
+    users: Optional[List[UserRead | None]] = []
 
 
 class EventCreate(EventBase):

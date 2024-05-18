@@ -15,8 +15,6 @@ class RegistrationForm(Model):
     workplace: Optional[str]
     iin: Optional[str]
     phone_number: Optional[str]
-    is_accreditator: Optional[bool]
-    admin: Optional[bool]
     password: str
     re_password: str
 

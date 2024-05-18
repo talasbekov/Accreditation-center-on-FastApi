@@ -2,51 +2,55 @@
 
 
 {% block content %}
+{% for att in attendees %}
 <!-- Table 1 - Bootstrap Brain Component -->
 <section class="py-3 py-md-5">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-12 col-lg-12">
         <div class="card widget-card border-light bg-light shadow-sm">
-          {% for req in requests %}
           <div class="card-body p-4">
-            <h5 class="card-title widget-card-title mb-4">Заявки на мероприятие <a href="event_detail.html">{{ req.events.name }}</a> </h5>
-            <p>{{ req.attendees|length }} участников</p>
+            <h5 class="card-title widget-card-title mb-4">Участники одной заявки</h5>
+            <p>56 участников</p>
             <div class="table-responsive bg-light">
               <table class="table table-borderless bsb-table-xl text-nowrap align-middle m-0 bg-light">
                 <thead>
                   <tr>
-                    <th>Название</th>
-                    <th>Участники</th>
-                    <th>Дата подачи</th>
-                    <th>Ответственный</th>
-                    <th>Статус</th>
+                    <th>Фото</th>
+                    <th>Документ</th>
+                    <th>ФИО</th>
+                    <th>ИИН</th>
+                    <th>Гражданство</th>
+                    <th>Место работы</th>
+                    <th>Обьект</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>
-                      <a href="/api/client/requests/attendees">
-                        {{ req.name }}
+                      <a href="attendee_detail.html">
+                        <img src="{{ att.photo }}" width="70" height="70">
                       </a>
                     </td>
                     <td>
-                        {{ req.attendees|length }}
+                      <a href="attendee_detail.html">
+                        <img src="{{ att.doc_scan }}" width="70" height="70">
+                      </a>
                     </td>
-                    <td>{{ req.created_at }}</td>
-                    <td>{{ req.users.name }}</td>
-                    <td>
-                        <span class="badge bg-success bsb-w-85">Новое</span>
-                    </td>
+                    <td>{{ att.surname }} {{ att.firstname }} {{ att.patronymic }}</td>
+                    <td>{{ att.iin }}</td>
+                    <td>{{ att.birth_date }}</td>
+                    <td>{{ att.post }}</td>
+                    <td>{{ att.visit_object }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
-          {% endfor %}
         </div>
       </div>
     </div>
   </div>
 </section>
+{% endfor %}
 {% endblock %}

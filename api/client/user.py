@@ -1,14 +1,17 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status, Request
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, status, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi_jwt_auth import AuthJWT
+
 from sqlalchemy.orm import Session
+from pydantic import EmailStr
 
 from core import get_db, configs
+from exceptions import InvalidOperationException, BadRequestException
 
 from schemas import UserRead, UserUpdate, UserCreate
-from services import user_service
+from services import user_service, event_service
 router = APIRouter(
     prefix="/users", tags=["Users"]
 )
@@ -18,37 +21,99 @@ router = APIRouter(
     "",
     response_model=List[UserRead],
     summary="Get all Users",
+    response_class=HTMLResponse
 )
 async def get_all(
+    request: Request,
     *,
     db: Session = Depends(get_db),
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 10,
     Authorize: AuthJWT = Depends()
 ):
     """
-    Get all Users
-
+    Get all Events
     """
     Authorize.jwt_required()
-    return user_service.get_multi(db, skip, limit)
+    users = user_service.get_multi(db, skip, limit)
+    return configs.templates.TemplateResponse(
+        "users.html",
+        {
+            "request": request,
+            "users": users
+        }
+    )
 
 
-@router.post("", status_code=status.HTTP_201_CREATED,
-             response_model=UserRead,
-             summary="Create User")
-async def create(*,
-                 db: Session = Depends(get_db),
-                 body: UserCreate,
-                 Authorize: AuthJWT = Depends()
-                 ):
+@router.get(
+    "/create",
+    response_model=UserRead,
+    summary="Create User",
+    response_class=HTMLResponse
+)
+async def create_form(
+    *,
+    request: Request,
+    db: Session = Depends(get_db),
+    Authorize: AuthJWT = Depends()
+):
     """
-        Create User
-
-        - **name**: required
+    Create Event
+    - **name**: required
     """
     Authorize.jwt_required()
-    return user_service.create(db, body)
+    events = event_service.get_multi(db)
+    try:
+        return configs.templates.TemplateResponse(
+            "create_user.html",
+            {
+                "request": request,
+                "events": events
+            }
+        )
+    except Exception as e:
+        raise InvalidOperationException(
+            detail=f"Failed to create event: {str(e)}"
+        )
+
+
+@router.post(
+    "/create/user",
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserRead,
+    summary="Create User",
+)
+async def create(
+    *, db: Session = Depends(get_db),
+    request: Request,
+    Authorize: AuthJWT = Depends(),
+    name: str = Form(...),
+    email: EmailStr = Form(...),
+    workplace: str = Form(...),
+    iin: int = Form(...),
+    phone_number: str = Form(...),
+    password: str = Form(),
+    re_password: str = Form()
+):
+    Authorize.jwt_required()
+    # not None
+    form = UserCreate(
+        name=name,
+        email=email,
+        workplace=workplace,
+        iin=iin,
+        phone_number=phone_number,
+        password=password,
+        re_password=re_password
+    )
+    try:
+        db_obj = user_service.create(db, form)
+        db.add(db_obj)
+        db.commit()  # Commit the transaction
+        return RedirectResponse(url="/api/client/users", status_code=status.HTTP_303_SEE_OTHER)
+    except BadRequestException as e:
+        db.rollback()  # Roll back the transaction on error
+        return configs.templates.TemplateResponse("create_event.html", {"request": request, "error": str(e)})
 
 
 @router.get(

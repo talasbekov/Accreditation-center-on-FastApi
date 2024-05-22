@@ -45,13 +45,14 @@ async def get_all(
     user = Authorize.get_jwt_subject()
     user_email = Authorize.get_raw_jwt()['email']
     events = event_service.get_multi(db, skip, limit)
+
     return configs.templates.TemplateResponse(
         "events.html",
         {
             "request": request,
+            "user_email": user_email,
             "events": events,
             "user": user,
-            "user_email": user_email
         }
     )
 

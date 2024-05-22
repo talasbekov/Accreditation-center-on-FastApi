@@ -9,10 +9,12 @@
     <div class="row justify-content-center">
       <div class="col-12 col-lg-12">
         <div class="card widget-card border-light bg-light shadow-sm">
-          {% for req in requests %}
+
           <div class="card-body p-4">
-            <h5 class="card-title widget-card-title mb-4">Заявки на мероприятие <a href="event_detail.html">{{ req.events.name }}</a> </h5>
-            <p>{{ req.attendees|length }} участников</p>
+
+            <h5 class="card-title widget-card-title mb-4">Заявки на мероприятие <a href="event_detail.html">{{ requests.events|length }}</a> </h5>
+            <p>{{ requests.attendees|length }} участников</p>
+
             <div class="table-responsive bg-light">
               <table class="table table-borderless bsb-table-xl text-nowrap align-middle m-0 bg-light">
                 <thead>
@@ -24,10 +26,11 @@
                     <th>Статус</th>
                   </tr>
                 </thead>
+                {% for req in requests %}
                 <tbody>
                   <tr>
                     <td>
-                      <a href="/api/client/requests/attendees">
+                      <a href="/api/client/requests/request_{{ req.id }}/attendees">
                         {{ req.name }}
                       </a>
                     </td>
@@ -41,10 +44,10 @@
                     </td>
                   </tr>
                 </tbody>
+                {% endfor %}
               </table>
             </div>
           </div>
-          {% endfor %}
         </div>
       </div>
     </div>

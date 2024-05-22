@@ -10,6 +10,9 @@ from services.base import ServiceBase
 
 class RequestService(ServiceBase[Request, RequestCreate, RequestUpdate]):
 
+    def get_by_id(self, db: Session, request_id: str):
+        return db.query(self.model).filter(self.model.id == request_id).first()
+
     def get_by_name(self, db: Session, name: str) -> Optional[Request]:
         return db.query(Request).filter(Request.name == name).first()
 

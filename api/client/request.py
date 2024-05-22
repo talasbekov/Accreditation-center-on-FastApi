@@ -47,17 +47,16 @@ async def get_all(
 
 
 @router.get(
-    "/attendees",
+    "/request_{request_id}/attendees",
     response_model=List[RequestRead],
     summary="Get all Attendees by request",
     response_class=HTMLResponse
 )
-async def get_all_att_by_req(
+async def get_attendees_by_request(
     *,
     db: Session = Depends(get_db),
     request: Request,
-    skip: int = 0,
-    limit: int = 100,
+    request_id: str,
     Authorize: AuthJWT = Depends()
 ):
     """
@@ -65,12 +64,12 @@ async def get_all_att_by_req(
     """
     Authorize.jwt_required()
     user_email = Authorize.get_raw_jwt()['email']
-    requests = request_service.get_multi(db, skip, limit)
+    req = request_service.get_by_id(db, request_id)
     return configs.templates.TemplateResponse(
         "request_attendees.html",
         {
             "request": request,
-            "requests": requests,
+            "req": req,
             "user_email": user_email
         }
     )

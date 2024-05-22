@@ -56,7 +56,7 @@ app.include_router(router)
 
 # if configs.SENTRY_ENABLED:
 #     sentry_sdk.init(dsn=configs.SENTRY_DSN, traces_sample_rate=1.0)
-
+app.mount("/media", StaticFiles(directory="media"), name="media")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 

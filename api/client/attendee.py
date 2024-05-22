@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from core import get_db, configs
 from exceptions import InvalidOperationException, BadRequestException
 
-from schemas import AttendeeRead, AttendeeUpdate, AttendeeCreate, RequestCreate
+from schemas import AttendeeRead, AttendeeCreate, RequestCreate
 from services import attendee_service, request_service, sex_service, country_service, document_service
 
 router = APIRouter(
@@ -98,10 +98,12 @@ async def create_attendee_form(
     countries = country_service.get_multi(db, skip, limit)
     document_types = document_service.get_multi(db, skip, limit)
     user = Authorize.get_jwt_subject()
+
     form = RequestCreate(
         event_id=event_id,
         created_by_id=user,
     )
+
     try:
         request_id = request_service.create(db, form)
         db.commit()
@@ -123,14 +125,15 @@ async def create_attendee_form(
 
 
 @router.post(
-    "/create/attendee",
+    "/create/attendee/request_{req_id}",
     status_code=status.HTTP_201_CREATED,
-    summary="Create User",
+    summary="Create Attendee",
 )
 async def create_attendee(
     *, db: Session = Depends(get_db),
     request: Request,
     Authorize: AuthJWT = Depends(),
+    req_id: str,
     surname: str = Form(...),
     firstname: str = Form(...),
     patronymic: str = Form(...),
@@ -152,6 +155,9 @@ async def create_attendee(
 ):
     Authorize.jwt_required()
     user_email = Authorize.get_raw_jwt()['email']
+    req = request_service.get_by_id(db, req_id)
+    event_id = req.events.id
+    print(event_id)
     form = AttendeeCreate(
         surname=surname,
         firstname=firstname,
@@ -170,7 +176,8 @@ async def create_attendee(
         doc_scan=None,
         sex_id=sex_id,
         country_id=country_id,
-        doc_type_id=doc_type_id
+        doc_type_id=doc_type_id,
+        request_id=req_id
     )
     try:
         db_obj = attendee_service.create(db, form)
@@ -178,7 +185,9 @@ async def create_attendee(
         await attendee_service.upload_doc_scan(db, db_obj.id, doc_scan)
         # db.add(db_obj)
         db.commit()  # Commit the transaction
-        return RedirectResponse(url="/api/client/attendees/all", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(
+            url=f"/api/client/attendee/create/event_{event_id}/request_{req_id}", status_code=status.HTTP_303_SEE_OTHER
+        )
     except BadRequestException as e:
         db.rollback()  # Roll back the transaction on error
         error_message = str(e)
@@ -192,56 +201,66 @@ async def create_attendee(
 
 
 @router.get(
-    "/{id}/",
-    response_model=AttendeeRead,
-    summary="Get Attendee by id",
+    "/create/event_{event_id}/request_{req_id}",
+    summary="Create Attendee",
+    response_class=HTMLResponse
 )
-async def get_by_id(
-    *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
-):
-    """
-    Get Attendee by id
-
-    - **id**: UUID - required.
-    """
-    Authorize.jwt_required()
-    return attendee_service.get_by_id(db, str(id))
-
-
-@router.put(
-    "/{id}/",
-    response_model=AttendeeRead,
-    summary="Update Attendee",
-)
-async def update(
+async def create_attendee_form_with_request(
     *,
     db: Session = Depends(get_db),
-    id: str,
-    body: AttendeeUpdate,
+    request: Request,
+    skip: int = 0,
+    limit: int = 10,
+    event_id: str,
+    req_id: str,
     Authorize: AuthJWT = Depends()
 ):
     """
-    Update Attendee
-
+    Create Attendee
+    - **name**: required
     """
     Authorize.jwt_required()
-    return attendee_service.update(
-        db, db_obj=attendee_service.get_by_id(db, str(id)), obj_in=body
-    )
+    user_email = Authorize.get_raw_jwt()['email']
+    sexes = sex_service.get_multi(db, skip, limit)
+    countries = country_service.get_multi(db, skip, limit)
+    document_types = document_service.get_multi(db, skip, limit)
+    user = Authorize.get_jwt_subject()
+    print(req_id)
+    if req_id is None:
+        form = RequestCreate(
+            event_id=event_id,
+            created_by_id=user,
+        )
 
-
-@router.delete(
-    "/{id}/",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete Attendee",
-)
-async def delete(
-    *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
-):
-    """
-    Delete Attendee
-
-    - **id**: UUId - required
-    """
-    Authorize.jwt_required()
-    attendee_service.remove(db, str(id))
+        try:
+            request_id = request_service.create(db, form)
+            db.commit()
+            return configs.templates.TemplateResponse(
+                "create_attendee.html",
+                {
+                    "request": request,
+                    "request_id": request_id,
+                    "user_email": user_email,
+                    "sexes": sexes,
+                    "countries": countries,
+                    "document_types": document_types,
+                }
+            )
+        except Exception as e:
+            raise InvalidOperationException(
+                detail=f"Failed to create event: {str(e)}"
+            )
+    else:
+        request_id = request_service.get_by_id(db, req_id)
+        print(request_id)
+        return configs.templates.TemplateResponse(
+            "create_attendee.html",
+            {
+                "request": request,
+                "request_id": request_id,
+                "user_email": user_email,
+                "sexes": sexes,
+                "countries": countries,
+                "document_types": document_types,
+            }
+        )

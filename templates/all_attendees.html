@@ -2,7 +2,7 @@
 
 
 {% block content %}
-{% for att in attendees %}
+
 <!-- Table 1 - Bootstrap Brain Component -->
 <section class="py-3 py-md-5">
   <div class="container">
@@ -25,25 +25,27 @@
                     <th>Обьект</th>
                   </tr>
                 </thead>
+                {% for attendee in attendees %}
                 <tbody>
                   <tr>
                     <td>
                       <a href="attendee_detail.html">
-                        <img src="{{ att.photo }}" width="70" height="70">
+                        <img src="{{ url_for('media', path=attendee.photo) }}" width="70" height="70">
                       </a>
                     </td>
                     <td>
                       <a href="attendee_detail.html">
-                        <img src="{{ att.doc_scan }}" width="70" height="70">
+                        <img src="{{ url_for('media', path=attendee.doc_scan) }}" width="70" height="70">
                       </a>
                     </td>
-                    <td>{{ att.surname }} {{ att.firstname }} {{ att.patronymic }}</td>
-                    <td>{{ att.iin }}</td>
-                    <td>{{ att.birth_date }}</td>
-                    <td>{{ att.post }}</td>
-                    <td>{{ att.visit_object }}</td>
+                    <td>{{ attendee.surname }} {{ attendee.firstname }} {{ attendee.patronymic }}</td>
+                    <td>{{ attendee.iin }}</td>
+                    <td>{{ attendee.birth_date }}</td>
+                    <td>{{ attendee.post }}</td>
+                    <td>{{ attendee.visit_object }}</td>
                   </tr>
                 </tbody>
+                {% endfor %}
               </table>
             </div>
           </div>
@@ -52,5 +54,4 @@
     </div>
   </div>
 </section>
-{% endfor %}
 {% endblock %}

@@ -23,8 +23,9 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
         requests = db.query(Request).filter(Request.event_id == event_id).offset(skip).limit(limit).all()
         attendees = []
         for req in requests:
-            req_attendees = req.attendees
-            attendees.append(req_attendees)
+            for attendee in req.attendees:
+                attendees.append(attendee)
+        print(attendees)
         return attendees
 
     async def get_by_request(self, db: Session, req_id: str) -> Optional[Attendee]:
@@ -46,7 +47,8 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
             file_contents = photo.file.read()
             await file_object.write(file_contents)
 
-        attendee.photo = str(file_location)
+        photo_location = Path(f"event_{event_number}/attendee_photos/{photo.filename}")
+        attendee.photo = str(photo_location)
         db.commit()
         db.refresh(attendee)
 
@@ -68,7 +70,8 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
             file_contents = photo.file.read()
             await file_object.write(file_contents)
 
-        attendee.doc_scan = str(file_location)
+        doc_scan_location = Path(f"event_{event_number}/attendee_documents/{photo.filename}")
+        attendee.doc_scan = str(doc_scan_location)
         db.commit()
         db.refresh(attendee)
 

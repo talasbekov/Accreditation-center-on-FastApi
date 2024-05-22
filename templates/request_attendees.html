@@ -2,7 +2,7 @@
 
 
 {% block content %}
-{% for req in requests %}
+
 <!-- Table 1 - Bootstrap Brain Component -->
 <section class="py-3 py-md-5">
   <div class="container">
@@ -25,25 +25,27 @@
                     <th>Обьект</th>
                   </tr>
                 </thead>
+                {% for attendee in req.attendees %}
                 <tbody>
                   <tr>
                     <td>
                       <a href="attendee_detail.html">
-                        <img src="{{ req.attendees.photo }}" width="70" height="70">
+                        <img src="{{ url_for('media', path=attendee.photo) }}" width="70" height="70">
                       </a>
                     </td>
                     <td>
                       <a href="attendee_detail.html">
-                        <img src="{{ req.attendees.doc_scan }}" width="70" height="70">
+                        <img src="{{ url_for('media', path=attendee.doc_scan) }}" width="70" height="70">
                       </a>
                     </td>
-                    <td>{{ req.attendees.surname }} {{ req.attendees.firstname }} {{ req.attendees.patronymic }}</td>
-                    <td>{{ req.attendees.iin }}</td>
-                    <td>{{ req.attendees.birth_date }}</td>
-                    <td>{{ req.attendees.post }}</td>
-                    <td>{{ req.attendees.visit_object }}</td>
+                    <td>{{ attendee.surname }} {{ attendee.firstname }} {{ attendee.patronymic }}</td>
+                    <td>{{ attendee.iin }}</td>
+                    <td>{{ attendee.birth_date }}</td>
+                    <td>{{ attendee.post }}</td>
+                    <td>{{ attendee.visit_object }}</td>
                   </tr>
                 </tbody>
+                {% endfor %}
               </table>
             </div>
           </div>
@@ -52,5 +54,4 @@
     </div>
   </div>
 </section>
-{% endfor %}
 {% endblock %}

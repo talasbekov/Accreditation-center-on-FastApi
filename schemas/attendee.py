@@ -1,5 +1,6 @@
 from typing import Optional
 from datetime import date
+from fastapi import UploadFile
 from schemas import Model, ReadModel
 
 
@@ -20,8 +21,8 @@ class AttendeeBase(Model):
     doc_issue: Optional[str]
     visit_object: Optional[str]
     transcription: Optional[str]
-    photo: Optional[str]  # Field to store the file path of the photo
-    doc_scan: Optional[str]  # Field to store the file path of the document scan
+    photo: Optional[UploadFile]  # Field to store the file path of the photo
+    doc_scan: Optional[UploadFile]  # Field to store the file path of the document scan
 
 
 class AttendeeCreate(AttendeeBase):

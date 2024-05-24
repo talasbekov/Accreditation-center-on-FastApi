@@ -1,9 +1,9 @@
 from typing import List
 from datetime import date
 
-from fastapi import APIRouter, Depends, status, UploadFile, File, Request, Form
+from fastapi import APIRouter, Depends, status, UploadFile, File, Request, Form, HTTPException
 
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from fastapi_jwt_auth import AuthJWT
@@ -262,5 +262,104 @@ async def create_attendee_form_with_request(
                 "sexes": sexes,
                 "countries": countries,
                 "document_types": document_types,
+            }
+        )
+
+
+@router.patch(
+    "/update/attendee/{attendee_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Update Attendee",
+)
+async def update_attendee(
+    *,
+    db: Session = Depends(get_db),
+    request: Request,
+    attendee_id: str,
+    surname: str = Form(None),
+    firstname: str = Form(None),
+    patronymic: str = Form(None),
+    post: str = Form(None),
+    doc_series: str = Form(None),
+    iin: str = Form(None),
+    doc_number: str = Form(None),
+    doc_issue: str = Form(None),
+    visit_object: str = Form(None),
+    transcription: str = Form(None),
+    sex_id: str = Form(None),
+    country_id: str = Form(None),
+    doc_type_id: str = Form(None),
+    birth_date: date = Form(None),
+    doc_begin: date = Form(None),
+    doc_end: date = Form(None),
+    photo: UploadFile = File(None),
+    doc_scan: UploadFile = File(None),
+):
+    # Fetch the existing attendee from the database
+    attendee = attendee_service.get_by_id(db, attendee_id)
+    if not attendee:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Attendee not found",
+        )
+
+    # Update the attendee with the new data
+    updated_data = {}
+    for field_name in [
+        "surname",
+        "firstname",
+        "patronymic",
+        "post",
+        "doc_series",
+        "iin",
+        "doc_number",
+        "doc_issue",
+        "visit_object",
+        "transcription",
+        "sex_id",
+        "country_id",
+        "doc_type_id",
+        "birth_date",
+        "doc_begin",
+        "doc_end",
+    ]:
+        field_value = locals()[field_name]
+        if field_value is not None:
+            updated_data[field_name] = field_value
+
+    attendee_service.update(db, attendee, updated_data)
+
+    # Upload new photo and doc_scan if provided
+    if photo:
+        await attendee_service.upload_photo(db, attendee_id, photo)
+    if doc_scan:
+        await attendee_service.upload_doc_scan(db, attendee_id, doc_scan)
+
+    return {"message": "Attendee updated successfully"}
+
+
+@router.delete(
+    "/delete/attendee_{attendee_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete Attendee"
+)
+async def remove_attendee(
+        request: Request,
+        attendee_id: str,
+        db: Session = Depends(get_db),
+        Authorize: AuthJWT = Depends(),
+):
+    Authorize.jwt_required()
+    try:
+        # Perform the delete operation
+        attendee_service.remove(db, attendee_id)
+        db.commit()  # Commit the transaction
+        return Response(status_code=status.HTTP_200_OK)
+    except BadRequestException:
+        db.rollback()  # Roll back the transaction on error
+        return configs.templates.TemplateResponse(
+            "all_attendees.html",
+            {
+                "request": request,
             }
         )

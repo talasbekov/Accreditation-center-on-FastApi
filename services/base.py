@@ -1,5 +1,6 @@
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
+from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -68,7 +69,10 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def remove(self, db: Session, id: str) -> ModelType:
-        obj = db.query(self.model).get(id)
+        obj = self.get_by_id(db, id)
+        print(obj, "remove_obj")
+        if not obj:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{obj.name} not found")
         db.delete(obj)
         db.flush()
         return obj

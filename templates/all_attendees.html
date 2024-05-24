@@ -23,6 +23,7 @@
                     <th>Гражданство</th>
                     <th>Место работы</th>
                     <th>Обьект</th>
+                    <th>Действие</th>
                   </tr>
                 </thead>
                 {% for attendee in attendees %}
@@ -43,6 +44,14 @@
                     <td>{{ attendee.birth_date }}</td>
                     <td>{{ attendee.post }}</td>
                     <td>{{ attendee.visit_object }}</td>
+                    <td>
+                      <a href="#" onclick="deleteAttendee('{{ attendee.id }}')">
+                          <img src="{{ url_for('static', path='/img/remove.svg') }}" width="30" height="30">
+                      </a>
+                      <a href="#" onclick="updateAttendee('{{ attendee.id }}')">
+                          <img src="{{ url_for('static', path='/img/remove.svg') }}" width="30" height="30">
+                      </a>
+                    </td>
                   </tr>
                 </tbody>
                 {% endfor %}
@@ -54,4 +63,38 @@
     </div>
   </div>
 </section>
+
+<script>
+    function deleteAttendee(attendeeId) {
+        if (confirm('Вы уверены, что хотите удалить этого участника?')) {
+            fetch('/api/client/attendee/delete/attendee_' + attendeeId, {
+                method: 'DELETE'
+            }).then(response => {
+                if (response.ok) {
+                    // Обновление страницы или другие действия после успешного удаления
+                    location.reload();
+                } else {
+                    alert('Ошибка при удалении участника');
+                }
+            });
+        }
+    }
+</script>
+<script>
+    function updateAttendee(attendeeId) {
+        if (confirm('Вы уверены, что хотите удалить этого участника?')) {
+            fetch('/api/client/attendee/delete/attendee_' + attendeeId, {
+                method: 'DELETE'
+            }).then(response => {
+                if (response.ok) {
+                    // Обновление страницы или другие действия после успешного удаления
+                    location.reload();
+                } else {
+                    alert('Ошибка при удалении участника');
+                }
+            });
+        }
+    }
+</script>
+
 {% endblock %}

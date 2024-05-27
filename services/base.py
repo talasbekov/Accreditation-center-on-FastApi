@@ -57,6 +57,7 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self, db: Session, *, db_obj: ModelType, obj_in: UpdateSchemaType
     ) -> ModelType:
         obj_data = jsonable_encoder(db_obj)
+        print(obj_data, "obj")
         if isinstance(obj_in, dict):
             update_data = obj_in
         else:
@@ -64,6 +65,7 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         for field in obj_data:
             if field in update_data:
                 setattr(db_obj, field, update_data[field])
+        print(db_obj, "obj2")
         db.add(db_obj)
         db.flush()
         return db_obj

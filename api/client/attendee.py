@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from core import get_db, configs
 from exceptions import InvalidOperationException, BadRequestException
 
-from schemas import AttendeeRead, AttendeeCreate, RequestCreate
+from schemas import AttendeeRead, AttendeeCreate, RequestCreate, AttendeeUpdate
 from services import attendee_service, request_service, sex_service, country_service, document_service
 
 router = APIRouter(
@@ -157,7 +157,6 @@ async def create_attendee(
     user_email = Authorize.get_raw_jwt()['email']
     req = request_service.get_by_id(db, req_id)
     event_id = req.events.id
-    print(event_id)
     form = AttendeeCreate(
         surname=surname,
         firstname=firstname,
@@ -225,7 +224,6 @@ async def create_attendee_form_with_request(
     countries = country_service.get_multi(db, skip, limit)
     document_types = document_service.get_multi(db, skip, limit)
     user = Authorize.get_jwt_subject()
-    print(req_id)
     if req_id is None:
         form = RequestCreate(
             event_id=event_id,
@@ -252,7 +250,6 @@ async def create_attendee_form_with_request(
             )
     else:
         request_id = request_service.get_by_id(db, req_id)
-        print(request_id)
         return configs.templates.TemplateResponse(
             "create_attendee.html",
             {
@@ -266,8 +263,52 @@ async def create_attendee_form_with_request(
         )
 
 
+@router.get(
+    "/update/attendee_{attendee_id}",
+    summary="Update Attendee",
+    response_class=HTMLResponse
+)
+async def update_attendee_form(
+    *,
+    db: Session = Depends(get_db),
+    request: Request,
+    attendee_id: str,
+    Authorize: AuthJWT = Depends(),
+    skip: int = 0,
+    limit: int = 10,
+):
+    """
+    Update Attendee
+    """
+    Authorize.jwt_required()
+    user_email = Authorize.get_raw_jwt()['email']
+    sexes = sex_service.get_multi(db, skip, limit)
+    countries = country_service.get_multi(db, skip, limit)
+    document_types = document_service.get_multi(db, skip, limit)
+    try:
+        attendee = attendee_service.get_by_id(db, attendee_id)
+        if not attendee:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attendee not found")
+
+        return configs.templates.TemplateResponse(
+            "update_attendee.html",
+            {
+                "request": request,
+                "attendee": attendee,
+                "user_email": user_email,
+                "sexes": sexes,
+                "countries": countries,
+                "document_types": document_types,
+            }
+        )
+    except Exception as e:
+        raise InvalidOperationException(
+            detail=f"Failed to move to update list: {str(e)}"
+        )
+
+
 @router.patch(
-    "/update/attendee/{attendee_id}",
+    "/update/patch/attendee_{attendee_id}",
     status_code=status.HTTP_200_OK,
     summary="Update Attendee",
 )
@@ -295,47 +336,53 @@ async def update_attendee(
     photo: UploadFile = File(None),
     doc_scan: UploadFile = File(None),
 ):
+    print(attendee_id, "patch")
+    print(photo)
+    print(doc_scan)
     # Fetch the existing attendee from the database
     attendee = attendee_service.get_by_id(db, attendee_id)
+    print(attendee, "patch1")
     if not attendee:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Attendee not found",
         )
-
-    # Update the attendee with the new data
-    updated_data = {}
-    for field_name in [
-        "surname",
-        "firstname",
-        "patronymic",
-        "post",
-        "doc_series",
-        "iin",
-        "doc_number",
-        "doc_issue",
-        "visit_object",
-        "transcription",
-        "sex_id",
-        "country_id",
-        "doc_type_id",
-        "birth_date",
-        "doc_begin",
-        "doc_end",
-    ]:
-        field_value = locals()[field_name]
-        if field_value is not None:
-            updated_data[field_name] = field_value
-
-    attendee_service.update(db, attendee, updated_data)
-
-    # Upload new photo and doc_scan if provided
-    if photo:
-        await attendee_service.upload_photo(db, attendee_id, photo)
-    if doc_scan:
-        await attendee_service.upload_doc_scan(db, attendee_id, doc_scan)
-
-    return {"message": "Attendee updated successfully"}
+    updated_data = AttendeeUpdate(
+        surname=surname or attendee.surname,
+        firstname=firstname or attendee.firstname,
+        patronymic=patronymic or attendee.patronymic,
+        post=post or attendee.post,
+        doc_series=doc_series or attendee.doc_series,
+        iin=iin or attendee.iin,
+        doc_number=doc_number or attendee.doc_number,
+        doc_issue=doc_issue or attendee.doc_issue,
+        visit_object=visit_object or attendee.visit_object,
+        transcription=transcription or attendee.transcription,
+        birth_date=birth_date or attendee.birth_date,
+        doc_begin=doc_begin or attendee.doc_begin,
+        doc_end=doc_end or attendee.doc_end,
+        sex_id=sex_id or attendee.sex_id,
+        country_id=country_id or attendee.country_id,
+        doc_type_id=doc_type_id or attendee.doc_type_id,
+        request_id=attendee.request_id
+    )
+    print(updated_data)
+    try:
+        obj = attendee_service.update(db=db, db_obj=attendee, obj_in=updated_data)
+        print(obj, "112")
+        # Upload new photo and doc_scan if provided
+        await attendee_service.upload_photo(db, obj.id, photo)
+        await attendee_service.upload_doc_scan(db, obj.id, doc_scan)
+        print(113)
+        db.commit()
+        print(obj.request_id)
+        return RedirectResponse(
+            url=f"/api/client/requests/request_{obj.request_id}/attendees", status_code=status.HTTP_303_SEE_OTHER
+        )
+    except Exception as e:
+        raise InvalidOperationException(
+            detail=f"Failed to update attendee: {str(e)}"
+        )
 
 
 @router.delete(

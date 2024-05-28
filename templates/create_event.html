@@ -52,10 +52,8 @@
                   <select class="form-control" name="users" id="users">
                       <option value="">Выберите пользователей</option>
                       {% for u in users %}
-
                             <option value="{{ u.id }}">{{ u.name }}</option>
-
-                    {% endfor %}
+                      {% endfor %}
                   </select>
                 </div>
                 <div class="col-12">

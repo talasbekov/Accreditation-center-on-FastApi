@@ -72,7 +72,7 @@ def upgrade() -> None:
         sa.Column('iin', sa.String(length=12), nullable=False, unique=True),
         sa.Column('phone_number', sa.String(length=20), nullable=True),
         sa.Column('is_accreditator', sa.Boolean, nullable=False, default=False),
-        sa.Column('admin', sa.Boolean, nullable=False, default=False),
+        sa.Column('admin', sa.Boolean, nullable=False),
         sa.Column('last_signed_at', sa.TIMESTAMP(timezone=True), nullable=True),
         sa.Column('login_count', sa.Integer, nullable=False, default=0),
         sa.Column('name', sa.String(length=128), nullable=False),

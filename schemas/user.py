@@ -9,7 +9,7 @@ class UserBase(NamedModel):
     name: Optional[str]
     email: Optional[EmailStr]
     workplace: Optional[str]
-    admin: Optional[bool] = False
+    admin: Optional[bool]
     iin: int
     phone_number: Optional[str]
     last_signed_at: Optional[datetime]

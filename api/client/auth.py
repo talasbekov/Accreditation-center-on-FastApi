@@ -36,7 +36,6 @@ async def login(
         except Exception as e:
             print(e)
         # Установка токенов в куки для использования в последующих запросах
-        print(auth["access_token"])
         response = RedirectResponse(url="/api/client/events", status_code=status.HTTP_303_SEE_OTHER)
         response.set_cookie(
             key="access_token_cookie",
@@ -107,21 +106,6 @@ async def create(
             }
         )
 
-# @router.post("/register/user", summary="Register User",
-#              dependencies=[Depends(HTTPBearer())])
-# async def register_candidate(form: UserRegistrationForm,
-#                              Authorize: AuthJWT = Depends(),
-#                              db: Session = Depends(get_db)):
-#     """
-#         Register new candidate to the system.
-#
-#         - **iin**: str
-#     """
-#     Authorize.jwt_required()
-#     role = Authorize.get_raw_jwt()['role']
-#     return auth_service.register_candidate(
-#         form=form, db=db, staff_unit_id=role)
-
 
 @router.get("/refresh", dependencies=[Depends(HTTPBearer())])
 def refresh_token(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db)):
@@ -133,3 +117,11 @@ def refresh_token(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db))
         )
 
     return auth_service.refresh_token(db, Authorize)
+
+
+@router.post("/logout")
+def logout(request: Request):
+    response = RedirectResponse(url='/api/client/auth', status_code=status.HTTP_303_SEE_OTHER)
+    response.delete_cookie('access_token')
+    response.delete_cookie('X-CSRF-Token')
+    return response

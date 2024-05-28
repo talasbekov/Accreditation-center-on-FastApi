@@ -40,17 +40,18 @@ async def get_all(
     """
     Get all Events
     """
-    print(request, "request_eventR")
     Authorize.jwt_required()
-    user = Authorize.get_jwt_subject()
-    user_email = Authorize.get_raw_jwt()['email']
-    events = event_service.get_multi(db, skip, limit)
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
+    if user.admin is True:
+        events = event_service.get_multi(db, skip, limit)
+    else:
+        events = user.events
 
     return configs.templates.TemplateResponse(
         "events.html",
         {
             "request": request,
-            "user_email": user_email,
             "events": events,
             "user": user,
         }
@@ -76,14 +77,15 @@ async def get_requests_by_event_id(
     Get all Requests
     """
     Authorize.jwt_required()
-    user_email = Authorize.get_raw_jwt()['email']
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
     requests = request_service.get_by_event_id(db, event_id, skip, limit)
     return configs.templates.TemplateResponse(
         "requests.html",
         {
             "request": request,
             "requests": requests,
-            "user_email": user_email
+            "user": user
         }
     )
 
@@ -107,14 +109,15 @@ async def get_attendees_by_event_id(
     Get all Attendees
     """
     Authorize.jwt_required()
-    user_email = Authorize.get_raw_jwt()['email']
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
     attendees = attendee_service.get_attendees_by_event_id(db, event_id, skip, limit)
     return configs.templates.TemplateResponse(
         "all_attendees.html",
         {
             "request": request,
             "attendees": attendees,
-            "user_email": user_email
+            "user": user
         }
     )
 
@@ -136,7 +139,8 @@ async def create_form(
     - **name**: required
     """
     Authorize.jwt_required()
-    user_email = Authorize.get_raw_jwt()['email']
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
     cities = city_service.get_multi(db)
     users = user_service.get_multi(db)
     try:
@@ -146,7 +150,7 @@ async def create_form(
                 "request": request,
                 "cities": cities,
                 "users": users,
-                "user_email": user_email
+                "user": user
             }
         )
     except Exception as e:
@@ -174,7 +178,8 @@ async def create(
     users: List[str] = Form(default=[])  # Set a default empty list if None
 ):
     Authorize.jwt_required()
-    user_email = Authorize.get_raw_jwt()['email']
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
     users_objects = [user_service.get(db=db, id=user_id) for user_id in users if user_id]  # Ensure user_id is not None
     body = EventCreate(
         name=name,
@@ -196,7 +201,7 @@ async def create(
             "create_event.html", {
                 "request": request,
                 "error": str(e),
-                "user_email": user_email
+                "user": user
             }
         )
 

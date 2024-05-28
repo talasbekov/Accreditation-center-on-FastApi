@@ -13,7 +13,7 @@ from core import get_db, configs
 from exceptions import InvalidOperationException, BadRequestException
 
 from schemas import AttendeeRead, AttendeeCreate, RequestCreate, AttendeeUpdate
-from services import attendee_service, request_service, sex_service, country_service, document_service
+from services import attendee_service, request_service, sex_service, country_service, document_service, user_service
 
 router = APIRouter(
     prefix="/attendee", tags=["Attendees"]
@@ -62,14 +62,15 @@ async def get_all(
     Get all Requests
     """
     Authorize.jwt_required()
-    user_email = Authorize.get_raw_jwt()['email']
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
     attendees = attendee_service.get_multi(db, skip, limit)
     return configs.templates.TemplateResponse(
         "all_attendees.html",
         {
             "request": request,
             "attendees": attendees,
-            "user_email": user_email
+            "user": user
         }
     )
 
@@ -93,7 +94,7 @@ async def create_attendee_form(
     - **name**: required
     """
     Authorize.jwt_required()
-    user_email = Authorize.get_raw_jwt()['email']
+    user_id = Authorize.get_jwt_subject()
     sexes = sex_service.get_multi(db, skip, limit)
     countries = country_service.get_multi(db, skip, limit)
     document_types = document_service.get_multi(db, skip, limit)
@@ -105,6 +106,7 @@ async def create_attendee_form(
     )
 
     try:
+        user = user_service.get_by_id(db, user_id)
         request_id = request_service.create(db, form)
         db.commit()
         return configs.templates.TemplateResponse(
@@ -112,7 +114,7 @@ async def create_attendee_form(
             {
                 "request": request,
                 "request_id": request_id,
-                "user_email": user_email,
+                "user": user,
                 "sexes": sexes,
                 "countries": countries,
                 "document_types": document_types,
@@ -154,7 +156,8 @@ async def create_attendee(
     doc_scan: UploadFile = File(...),
 ):
     Authorize.jwt_required()
-    user_email = Authorize.get_raw_jwt()['email']
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
     req = request_service.get_by_id(db, req_id)
     event_id = req.events.id
     form = AttendeeCreate(
@@ -194,7 +197,7 @@ async def create_attendee(
             "create_attendee.html", {
                 "request": request,
                 "error": error_message,
-                "user_email": user_email
+                "user": user
             }
         )
 
@@ -219,7 +222,8 @@ async def create_attendee_form_with_request(
     - **name**: required
     """
     Authorize.jwt_required()
-    user_email = Authorize.get_raw_jwt()['email']
+    user_id = Authorize.get_jwt_subject()
+
     sexes = sex_service.get_multi(db, skip, limit)
     countries = country_service.get_multi(db, skip, limit)
     document_types = document_service.get_multi(db, skip, limit)
@@ -231,6 +235,7 @@ async def create_attendee_form_with_request(
         )
 
         try:
+            user = user_service.get_by_id(db, user_id)
             request_id = request_service.create(db, form)
             db.commit()
             return configs.templates.TemplateResponse(
@@ -238,7 +243,7 @@ async def create_attendee_form_with_request(
                 {
                     "request": request,
                     "request_id": request_id,
-                    "user_email": user_email,
+                    "user": user,
                     "sexes": sexes,
                     "countries": countries,
                     "document_types": document_types,
@@ -249,13 +254,14 @@ async def create_attendee_form_with_request(
                 detail=f"Failed to create event: {str(e)}"
             )
     else:
+        user = user_service.get_by_id(db, user_id)
         request_id = request_service.get_by_id(db, req_id)
         return configs.templates.TemplateResponse(
             "create_attendee.html",
             {
                 "request": request,
                 "request_id": request_id,
-                "user_email": user_email,
+                "user": user,
                 "sexes": sexes,
                 "countries": countries,
                 "document_types": document_types,
@@ -281,7 +287,8 @@ async def update_attendee_form(
     Update Attendee
     """
     Authorize.jwt_required()
-    user_email = Authorize.get_raw_jwt()['email']
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
     sexes = sex_service.get_multi(db, skip, limit)
     countries = country_service.get_multi(db, skip, limit)
     document_types = document_service.get_multi(db, skip, limit)
@@ -295,7 +302,7 @@ async def update_attendee_form(
             {
                 "request": request,
                 "attendee": attendee,
-                "user_email": user_email,
+                "user": user,
                 "sexes": sexes,
                 "countries": countries,
                 "document_types": document_types,
@@ -336,12 +343,8 @@ async def update_attendee(
     photo: UploadFile = File(None),
     doc_scan: UploadFile = File(None),
 ):
-    print(attendee_id, "patch")
-    print(photo)
-    print(doc_scan)
     # Fetch the existing attendee from the database
     attendee = attendee_service.get_by_id(db, attendee_id)
-    print(attendee, "patch1")
     if not attendee:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -366,16 +369,12 @@ async def update_attendee(
         doc_type_id=doc_type_id or attendee.doc_type_id,
         request_id=attendee.request_id
     )
-    print(updated_data)
     try:
         obj = attendee_service.update(db=db, db_obj=attendee, obj_in=updated_data)
-        print(obj, "112")
         # Upload new photo and doc_scan if provided
         await attendee_service.upload_photo(db, obj.id, photo)
         await attendee_service.upload_doc_scan(db, obj.id, doc_scan)
-        print(113)
         db.commit()
-        print(obj.request_id)
         return RedirectResponse(
             url=f"/api/client/requests/request_{obj.request_id}/attendees", status_code=status.HTTP_303_SEE_OTHER
         )

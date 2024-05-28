@@ -16,7 +16,7 @@ class User(NamedModel):
     iin = Column(Integer, unique=True)
     phone_number = Column(String(20), nullable=True)
     is_accreditator = Column(Boolean, default=False)
-    admin = Column(Boolean, default=False)
+    admin = Column(Boolean)
     last_signed_at = Column(TIMESTAMP(timezone=True), nullable=True)
     login_count = Column(Integer, default=0)
 

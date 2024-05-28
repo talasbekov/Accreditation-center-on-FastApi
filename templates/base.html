@@ -29,15 +29,15 @@
       <div class="offcanvas-body">
         <ul class="navbar-nav justify-content-end flex-grow-1">
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="/" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ user_email }}</a>
+            <a class="nav-link dropdown-toggle" href="/" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ user.email }}</a>
             <ul class="dropdown-menu border-0 shadow bsb-zoomIn" aria-labelledby="accountDropdown">
-              <li><a class="dropdown-item" href="/api/client/users">Все пользователи</a></li>
-              <li><a class="dropdown-item" href="/api/client/events/create">Создать мероприятие</a></li>
-              <li><a class="dropdown-item" href="/api/client/users/create">Добавить пользователя</a></li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li><a class="dropdown-item" href="loginform.html">Выйти</a></li>
+              {% if user.admin == true %}
+                <li><a class="dropdown-item" href="/api/client/users">Все пользователи</a></li>
+                <li><a class="dropdown-item" href="/api/client/events/create">Создать мероприятие</a></li>
+                <li><a class="dropdown-item" href="/api/client/users/create">Добавить пользователя</a></li>
+                <li><hr class="dropdown-divider"></li>
+              {% endif %}
+              <li><a class="dropdown-item" href="#" id="logout-link">Выйти</a></li>
             </ul>
           </li>
         </ul>
@@ -48,7 +48,21 @@
 
 {% block content %}<p>Logged in as: {{ user_email }}</p>
 {% endblock %}
-
+<script>
+    document.getElementById('logout-link').addEventListener('click', function(event) {
+        event.preventDefault();
+        fetch('/api/client/auth/logout', {
+            method: 'POST',
+            credentials: 'include' // Ensures cookies are sent with the request
+        }).then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            }
+        }).catch(error => {
+            console.error('Error logging out:', error);
+        });
+    });
+</script>
     <!-- Bootstrap Bundle with Popper JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 

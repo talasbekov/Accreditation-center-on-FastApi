@@ -35,12 +35,15 @@ async def get_all(
     Get all Events
     """
     Authorize.jwt_required()
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
     users = user_service.get_multi(db, skip, limit)
     return configs.templates.TemplateResponse(
         "users.html",
         {
             "request": request,
-            "users": users
+            "users": users,
+            "user": user,
         }
     )
 
@@ -92,6 +95,7 @@ async def create(
     workplace: str = Form(...),
     iin: int = Form(...),
     phone_number: str = Form(...),
+    admin: str = Form(...),
     password: str = Form(),
     re_password: str = Form()
 ):
@@ -103,9 +107,11 @@ async def create(
         workplace=workplace,
         iin=iin,
         phone_number=phone_number,
+        admin=admin,
         password=password,
         re_password=re_password
     )
+    print(form)
     try:
         db_obj = user_service.create(db, form)
         db.add(db_obj)

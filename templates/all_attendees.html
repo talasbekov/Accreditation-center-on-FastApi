@@ -54,11 +54,11 @@
                     <td>{{ attendee.post }}</td>
                     <td>{{ attendee.visit_object }}</td>
                     <td>
-                      <a href="#" onclick="deleteAttendee('{{ attendee.id }}')">
-                          <img src="{{ url_for('static', path='/img/remove.svg') }}" width="30" height="30">
-                      </a>
                       <a href="/api/client/attendee/update/attendee_{{ attendee.id }}">
                           <img src="{{ url_for('static', path='/img/update.svg') }}" width="30" height="30">
+                      </a>
+                      <a href="#" onclick="deleteAttendee('{{ attendee.id }}')">
+                          <img src="{{ url_for('static', path='/img/remove.svg') }}" width="30" height="30">
                       </a>
                     </td>
                   </tr>

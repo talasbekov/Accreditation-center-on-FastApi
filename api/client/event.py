@@ -1,7 +1,7 @@
 from datetime import date
 from typing import List
 
-from fastapi import APIRouter, Depends, status, Request, Form
+from fastapi import APIRouter, Depends, status, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
@@ -18,9 +18,24 @@ router = APIRouter(
 )
 
 
-@router.get("/download/{event_id}")
-async def download_event_zip(event_id: str, db: Session = Depends(get_db)):
+@router.get("/download/zip/event_{event_id}")
+async def download_event_zip(
+        event_id: int,
+        db: Session = Depends(get_db),
+        Authorize: AuthJWT = Depends()
+):
+    Authorize.jwt_required()
     return event_service.download_event(db, event_id)
+
+
+@router.get("/download/json/event_{event_id}")
+async def download_event_json(
+        event_id: int,
+        db: Session = Depends(get_db),
+        Authorize: AuthJWT = Depends()
+):
+    Authorize.jwt_required()
+    return event_service.download_event_json(db, event_id)
 
 
 @router.get(
@@ -68,7 +83,7 @@ async def get_requests_by_event_id(
     *,
     db: Session = Depends(get_db),
     request: Request,
-    event_id: str,
+    event_id: int,
     skip: int = 0,
     limit: int = 100,
     Authorize: AuthJWT = Depends()
@@ -85,7 +100,8 @@ async def get_requests_by_event_id(
         {
             "request": request,
             "requests": requests,
-            "user": user
+            "user": user,
+            "event_id": event_id
         }
     )
 
@@ -100,7 +116,7 @@ async def get_attendees_by_event_id(
     *,
     db: Session = Depends(get_db),
     request: Request,
-    event_id: str,
+    event_id: int,
     skip: int = 0,
     limit: int = 100,
     Authorize: AuthJWT = Depends()
@@ -203,6 +219,113 @@ async def create(
                 "error": str(e),
                 "user": user
             }
+        )
+
+
+@router.get(
+    "/update/event_{event_id}",
+    summary="Update Event",
+    response_class=HTMLResponse
+)
+async def update_event_form(
+    *,
+    db: Session = Depends(get_db),
+    request: Request,
+    event_id: int,
+    skip: int = 0,
+    limit: int = 10,
+    Authorize: AuthJWT = Depends()
+):
+    """
+    Update Attendee
+    """
+    Authorize.jwt_required()
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
+    users = user_service.get_multi(db, skip, limit)
+    cities = city_service.get_multi(db, skip, limit)
+    if user.admin is True:
+        try:
+            event = event_service.get_by_id(db, event_id)
+            if not event:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Event not found"
+                )
+
+            return configs.templates.TemplateResponse(
+                "update_event.html",
+                {
+                    "request": request,
+                    "event": event,
+                    "user": user,
+                    "users": users,
+                    "cities": cities,
+                }
+            )
+        except Exception as e:
+            raise InvalidOperationException(
+                detail=f"Failed to move to update event list: {str(e)}"
+            )
+    else:
+        return RedirectResponse(
+            url="/api/client/events", status_code=status.HTTP_403_FORBIDDEN
+        )
+
+
+@router.patch(
+    "/update/patch/event_{event_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Update Event",
+)
+async def update_event(
+    *,
+    db: Session = Depends(get_db),
+    request: Request,
+    event_id: int,
+    event_code: str = Form(None),
+    lead: str = Form(None),
+    city_id: str = Form(None),
+    date_start: date = Form(None),
+    date_end: date = Form(None),
+    users: List[str] = Form(default=[]),
+    Authorize: AuthJWT = Depends()
+):
+    Authorize.jwt_required()
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
+    # Ensure user_id is not None
+    users_objects = [user_service.get(db=db, id=user_id) for user_id in users if user_id]
+    if user.admin is True:
+        # Fetch the existing attendee from the database
+        event = event_service.get_by_id(db, event_id)
+        if not event:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Event not found",
+            )
+        updated_data = EventUpdate(
+            event_code=event_code or event.event_code,
+            lead=lead or event.lead,
+            city_id=city_id or event.city_id,
+            date_start=date_start or event.date_start,
+            date_end=date_end or event.date_end,
+
+        )
+        try:
+            obj = event_service.update(db=db, db_obj=event, obj_in=updated_data)
+            obj.users = users_objects
+
+            db.commit()
+            return RedirectResponse(
+                url="/api/client/events", status_code=status.HTTP_303_SEE_OTHER
+            )
+        except Exception as e:
+            raise InvalidOperationException(
+                detail=f"Failed to update attendee: {str(e)}"
+            )
+    else:
+        return RedirectResponse(
+            url="/api/client/events", status_code=status.HTTP_403_FORBIDDEN
         )
 
 

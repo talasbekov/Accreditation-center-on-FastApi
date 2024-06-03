@@ -65,13 +65,16 @@ async def create_form(
     - **name**: required
     """
     Authorize.jwt_required()
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
     events = event_service.get_multi(db)
     try:
         return configs.templates.TemplateResponse(
             "create_user.html",
             {
                 "request": request,
-                "events": events
+                "events": events,
+                "user": user
             }
         )
     except Exception as e:

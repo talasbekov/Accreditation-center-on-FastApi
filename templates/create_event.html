@@ -49,8 +49,8 @@
                 </div>
                 <div class="col-12">
                   <label for="users" class="form-label">Прикрепить пользователей <span class="text-danger">*</span></label>
-                  <select class="form-control" name="users" id="users">
-                      <option value="">Выберите пользователей</option>
+                  <select class="form-control" name="users" id="users" multiple>
+<!--                      <option value="">Выберите пользователей</option>-->
                       {% for u in users %}
                             <option value="{{ u.id }}">{{ u.name }}</option>
                       {% endfor %}

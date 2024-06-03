@@ -9,12 +9,19 @@
     <div class="row justify-content-center">
       <div class="col-12 col-lg-12">
         <div class="card widget-card border-light bg-light shadow-sm">
-
-          <div class="card-body p-4">
-
-            <h5 class="card-title widget-card-title mb-4">Заявки на мероприятие <a href="event_detail.html">{{ requests.events|length }}</a> </h5>
-            <p>{{ requests.attendees|length }} участников</p>
-
+          <div class="card-body p-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="card-title widget-card-title m-0">
+                    Заявки на мероприятие <a href="event_detail.html">{{ requests.events|length }}</a>
+                </h5>
+                <p class="m-0">{{ requests | map(attribute='attendees') | map('length') | sum }} участников</p>
+                <a href="/api/client/events/download/zip/event_{{ event_id }}">
+                    <button class="btn btn-primary px-3" type="button">Скачать все фото</button>
+                </a>
+                <a href="/api/client/events/download/json/event_{{ event_id }}">
+                    <button class="btn btn-success px-3" type="button">Скачать все как json</button>
+                </a>
+            </div>
             <div class="table-responsive bg-light">
               <table class="table table-borderless bsb-table-xl text-nowrap align-middle m-0 bg-light">
                 <thead>

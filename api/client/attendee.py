@@ -4,7 +4,6 @@ from datetime import date
 from fastapi import APIRouter, Depends, status, UploadFile, File, Request, Form, HTTPException
 
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
-from fastapi.templating import Jinja2Templates
 
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
@@ -18,8 +17,6 @@ from services import attendee_service, request_service, sex_service, country_ser
 router = APIRouter(
     prefix="/attendee", tags=["Attendees"]
 )
-
-templates = Jinja2Templates(directory='templates')
 
 
 @router.post("/{attendee_id}/upload-photo/",

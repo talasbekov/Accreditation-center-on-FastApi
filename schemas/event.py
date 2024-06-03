@@ -21,7 +21,7 @@ class EventCreate(EventBase):
 
 
 class EventUpdate(EventBase):
-    pass
+    is_for_gov: Optional[bool]
 
 
 class EventRead(EventBase, ReadNamedModel):

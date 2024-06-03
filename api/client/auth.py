@@ -9,6 +9,7 @@ from core import get_db, configs
 from exceptions import BadRequestException
 from schemas import LoginForm, RegistrationForm
 from services import auth_service
+
 import secrets
 
 router = APIRouter(prefix="/auth", tags=["Authorization"])

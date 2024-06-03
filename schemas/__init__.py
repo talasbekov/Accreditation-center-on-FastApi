@@ -1,5 +1,5 @@
 from .base import Model, NamedModel, ReadModel, ReadNamedModel
-from .attendee import AttendeeBase, AttendeeCreate, AttendeeUpdate, AttendeeRead
+from .attendee import AttendeeBase, AttendeeCreate, AttendeeUpdate, AttendeeRead, GovAttendeeCreate, GovAttendeeRequest
 from .category import CategoryBase, CategoryCreate, CategoryUpdate, CategoryRead
 from .city import CityBase, CityCreate, CityUpdate, CityRead
 from .country import CountryBase, CountryCreate, CountryUpdate, CountryRead

@@ -6,7 +6,6 @@ from models import NamedModel
 from models.association import user_event_association
 
 
-# Определите ваши модели здесь
 class User(NamedModel):
     __tablename__ = "users"
 
@@ -16,7 +15,7 @@ class User(NamedModel):
     iin = Column(Integer, unique=True)
     phone_number = Column(String(20), nullable=True)
     is_accreditator = Column(Boolean, default=False)
-    admin = Column(Boolean)
+    admin = Column(Boolean, default=False)
     last_signed_at = Column(TIMESTAMP(timezone=True), nullable=True)
     login_count = Column(Integer, default=0)
 

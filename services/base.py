@@ -78,3 +78,28 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.delete(obj)
         db.flush()
         return obj
+
+    def transliterate(self, text: str) -> str:
+        # Простой словарь для транслитерации
+        translit_dict = {
+            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd',
+            'е': 'e', 'ё': 'yo', 'ж': 'zh', 'з': 'z', 'и': 'i',
+            'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n',
+            'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't',
+            'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch',
+            'ш': 'sh', 'щ': 'shch', 'ы': 'y', 'э': 'e', 'ю': 'yu',
+            'я': 'ya', 'ь': '', 'ъ': ''
+        }
+
+        result = []
+        for char in text:
+            lower_char = char.lower()
+            if lower_char in translit_dict:
+                translit_char = translit_dict[lower_char]
+                if char.isupper():
+                    translit_char = translit_char.capitalize()
+                result.append(translit_char)
+            else:
+                result.append(char)
+
+        return ''.join(result)

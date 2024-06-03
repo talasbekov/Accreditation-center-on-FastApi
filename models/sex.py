@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String
-from sqlalchemy.orm import relationship
+# from sqlalchemy.orm import relationship
 
 from models import NamedModel
 
@@ -10,4 +10,4 @@ class Sex(NamedModel):
 
     sex_code = Column(String(20), unique=True)
 
-    attendees = relationship("Attendee", back_populates="sexes")
+    # attendees = relationship("Attendee", back_populates="sexes")

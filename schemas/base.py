@@ -30,7 +30,7 @@ class TextModel(Model):
 
 
 class ReadModel(Model):
-    id: Optional[str]
+    id: int
     created_at: Optional[datetime.datetime]
     updated_at: Optional[datetime.datetime]
 
@@ -48,3 +48,4 @@ class ReadTextModel(TextModel, ReadModel):
     text: Optional[str]
     textKZ: Optional[str]
     textEN: Optional[str]
+

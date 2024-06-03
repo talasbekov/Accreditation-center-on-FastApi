@@ -1,5 +1,7 @@
 from typing import Optional, Type
+
 from sqlalchemy.orm import Session
+
 from models import Event  # Предполагается, что у вас есть модель Event в models.py
 from schemas import (
     EventCreate,
@@ -7,7 +9,7 @@ from schemas import (
     EventReadWithAttendies
 )  # Предполагается, что у вас есть схемы создания и обновления событий
 from services.base import ServiceBase
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi import HTTPException
 import shutil
 import os
@@ -22,22 +24,13 @@ def model_to_dict(model_instance):
 
 class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
 
-    def get_by_id(self, db: Session, event_id: str) -> Type[Event] | None:
+    def get_by_id(self, db: Session, event_id: int) -> Type[Event] | None:
         return db.query(self.model).filter(self.model.id == event_id).first()
 
     def get_by_name(self, db: Session, name: str) -> Optional[Event]:
         return db.query(Event).filter(Event.name == name).first()
 
-    def download_event(self, db: Session, event_id: str) -> FileResponse:
-        # Retrieve the attendee from the database
-        # if not attendee:
-        #     raise HTTPException(status_code=404, detail="Attendee not found")
-        #
-        # file_path = attendee.photo
-        # if not os.path.exists(file_path):
-        #     raise HTTPException(status_code=404, detail="File not found")
-        #
-        # return FileResponse(path=file_path, filename=os.path.basename(file_path))
+    def download_event(self, db: Session, event_id: int) -> FileResponse:
         folder_path = os.path.join("media", f"event_{event_id}")
 
         # Check if the event folder exists
@@ -56,7 +49,55 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
         return FileResponse(path=zip_file_path, filename=os.path.basename(zip_file_path),
                             media_type='application/octet-stream')
 
-    def get_event_with_attendees(self, db: Session, event_id: str) -> EventReadWithAttendies:
+    def download_event_json(self, db: Session, event_id: int) -> JSONResponse:
+        # Fetch the event data from the database
+        event = db.query(self.model).filter(self.model.id == event_id).first()
+        event_name_eng = self.transliterate(event.name)
+        if not event:
+            raise HTTPException(status_code=404, detail="Event not found")
+
+        # Convert event data to a dictionary
+        event_data = {
+            "attendees": [
+                {
+                    "birthDate": attendee.birth_date.isoformat() if attendee.birth_date else None,
+                    "countryId": attendee.country_id,
+                    "dateAdd": attendee.created_at.isoformat() if attendee.created_at else None,
+                    "dateEnd": attendee.created_at.isoformat() if attendee.created_at else None,
+                    "docBegin": attendee.doc_begin.isoformat() if attendee.doc_begin else None,
+                    "docEnd": attendee.doc_end.isoformat() if attendee.doc_end else None,
+                    "docIssue": attendee.doc_issue,
+                    "docNumber": attendee.doc_number,
+                    "docScan": attendee.doc_scan,
+                    "docSeries": attendee.id,
+                    "docTypeId": attendee.doc_type_id,
+                    "firstname": attendee.firstname,
+                    "id": attendee.id,
+                    "iin": attendee.iin,
+                    "patronymic": attendee.patronymic,
+                    "photo": attendee.photo,
+                    "post": attendee.post,
+                    "request": attendee.request_id,
+                    "sexId": attendee.sex_id,
+                    "surname": attendee.surname,
+                    "transcription": attendee.transcription,
+                    "visitObjects": attendee.visit_object
+                } for request in event.requests for attendee in request.attendees
+            ],
+            "city_code": event.city_id,
+            "date_end": event.date_end.isoformat(),
+            "date_start": event.date_start.isoformat(),
+            "event_code": event.event_code,
+            "id": event.id,
+            "name_eng": event_name_eng,
+            "name_kaz": event.name if hasattr(event, 'name') else None,
+            "name": event.name if hasattr(event, 'name') else None
+        }
+
+        # Return the JSON response
+        return JSONResponse(content=event_data, media_type='application/json')
+
+    def get_event_with_attendees(self, db: Session, event_id: int) -> EventReadWithAttendies:
         # Fetch the event by ID
         event = self.get_by_id(db, event_id)
         if event:  # Ensure event is not None

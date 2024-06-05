@@ -28,4 +28,3 @@ def is_valid_uuid(uuid_str):
 
 def convert_str_to_datetime(date: str):
     return datetime.datetime.strptime(date, "%Y-%m-%d")
-

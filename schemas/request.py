@@ -28,4 +28,3 @@ class RequestUpdate(RequestBase):
 
 class RequestRead(RequestBase, ReadModel):
     attendees: Optional[List[AttendeeRead]]
-

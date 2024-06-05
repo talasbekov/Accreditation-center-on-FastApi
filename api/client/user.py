@@ -12,16 +12,15 @@ from exceptions import InvalidOperationException, BadRequestException
 
 from schemas import UserRead, UserUpdate, UserCreate
 from services import user_service, event_service
-router = APIRouter(
-    prefix="/users", tags=["Users"]
-)
+
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get(
     "",
     response_model=List[UserRead],
     summary="Get all Users",
-    response_class=HTMLResponse
+    response_class=HTMLResponse,
 )
 async def get_all(
     request: Request,
@@ -29,7 +28,7 @@ async def get_all(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 10,
-    Authorize: AuthJWT = Depends()
+    Authorize: AuthJWT = Depends(),
 ):
     """
     Get all Events
@@ -44,7 +43,7 @@ async def get_all(
             "request": request,
             "users": users,
             "user": user,
-        }
+        },
     )
 
 
@@ -52,13 +51,10 @@ async def get_all(
     "/create",
     response_model=UserRead,
     summary="Create User",
-    response_class=HTMLResponse
+    response_class=HTMLResponse,
 )
 async def create_form(
-    *,
-    request: Request,
-    db: Session = Depends(get_db),
-    Authorize: AuthJWT = Depends()
+    *, request: Request, db: Session = Depends(get_db), Authorize: AuthJWT = Depends()
 ):
     """
     Create Event
@@ -70,17 +66,10 @@ async def create_form(
     events = event_service.get_multi(db)
     try:
         return configs.templates.TemplateResponse(
-            "create_user.html",
-            {
-                "request": request,
-                "events": events,
-                "user": user
-            }
+            "create_user.html", {"request": request, "events": events, "user": user}
         )
     except Exception as e:
-        raise InvalidOperationException(
-            detail=f"Failed to create event: {str(e)}"
-        )
+        raise InvalidOperationException(detail=f"Failed to create event: {str(e)}")
 
 
 @router.post(
@@ -90,7 +79,8 @@ async def create_form(
     summary="Create User",
 )
 async def create(
-    *, db: Session = Depends(get_db),
+    *,
+    db: Session = Depends(get_db),
     request: Request,
     Authorize: AuthJWT = Depends(),
     name: str = Form(...),
@@ -100,7 +90,7 @@ async def create(
     phone_number: str = Form(...),
     admin: str = Form(...),
     password: str = Form(),
-    re_password: str = Form()
+    re_password: str = Form(),
 ):
     Authorize.jwt_required()
     # not None
@@ -112,27 +102,25 @@ async def create(
         phone_number=phone_number,
         admin=admin,
         password=password,
-        re_password=re_password
+        re_password=re_password,
     )
     print(form)
     try:
         db_obj = user_service.create(db, form)
         db.add(db_obj)
         db.commit()  # Commit the transaction
-        return RedirectResponse(url="/api/client/users", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(
+            url="/api/client/users", status_code=status.HTTP_303_SEE_OTHER
+        )
     except BadRequestException as e:
         db.rollback()  # Roll back the transaction on error
-        return configs.templates.TemplateResponse("create_event.html", {"request": request, "error": str(e)})
+        return configs.templates.TemplateResponse(
+            "create_event.html", {"request": request, "error": str(e)}
+        )
 
 
-@router.get(
-    "/{id}/",
-    summary="Get User's data",
-    response_class=HTMLResponse
-)
-async def get_data_of_user(
-    *, request: Request, Authorize: AuthJWT = Depends()
-):
+@router.get("/{id}/", summary="Get User's data", response_class=HTMLResponse)
+async def get_data_of_user(*, request: Request, Authorize: AuthJWT = Depends()):
     """
     Get User by id
 
@@ -140,10 +128,11 @@ async def get_data_of_user(
     """
     Authorize.jwt_required()
     user = Authorize.get_jwt_subject()
-    user_email = Authorize.get_raw_jwt()['email']
+    user_email = Authorize.get_raw_jwt()["email"]
     print(user_email)
-    return configs.templates.TemplateResponse("base.html",
-                                              {"request": request, "user": user, "user_email": user_email})
+    return configs.templates.TemplateResponse(
+        "base.html", {"request": request, "user": user, "user_email": user_email}
+    )
 
 
 @router.put(
@@ -156,7 +145,7 @@ async def update(
     db: Session = Depends(get_db),
     id: str,
     body: UserUpdate,
-    Authorize: AuthJWT = Depends()
+    Authorize: AuthJWT = Depends(),
 ):
     """
     Update User

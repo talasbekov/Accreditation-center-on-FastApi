@@ -8,9 +8,7 @@ from core import get_db
 from schemas import CityRead, CityUpdate, CityCreate
 from services import city_service
 
-router = APIRouter(
-    prefix="/cities", tags=["Cities"]
-)
+router = APIRouter(prefix="/cities", tags=["Cities"])
 
 
 @router.get(
@@ -37,9 +35,7 @@ async def get_all(
     response_model=CityRead,
     summary="Create City",
 )
-async def create(
-    *, db: Session = Depends(get_db), body: CityCreate
-):
+async def create(*, db: Session = Depends(get_db), body: CityCreate):
     """
     Create City
 
@@ -50,12 +46,13 @@ async def create(
 
 @router.get(
     "/{id}/",
-
     response_model=CityRead,
     summary="Get City by id",
 )
 async def get_by_id(
-    *, db: Session = Depends(get_db), id: str,
+    *,
+    db: Session = Depends(get_db),
+    id: str,
 ):
     """
     Get City by id
@@ -89,11 +86,12 @@ async def update(
 @router.delete(
     "/{id}/",
     status_code=status.HTTP_204_NO_CONTENT,
-
     summary="Delete City",
 )
 async def delete(
-    *, db: Session = Depends(get_db), id: str,
+    *,
+    db: Session = Depends(get_db),
+    id: str,
 ):
     """
     Delete City

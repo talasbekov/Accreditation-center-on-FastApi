@@ -26,7 +26,9 @@ class Attendee(Model):
     sex = Column(Boolean, nullable=False)
 
     country_id = Column(String(), ForeignKey("countries.id"), nullable=True)
-    request_id = Column(String(), ForeignKey("requests.id", ondelete="CASCADE"), nullable=True)
+    request_id = Column(
+        String(), ForeignKey("requests.id", ondelete="CASCADE"), nullable=True
+    )
     doc_type_id = Column(String(), ForeignKey("document_types.id"), nullable=True)
 
     # sexes = relationship("Sex", back_populates="attendees")

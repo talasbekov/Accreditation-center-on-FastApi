@@ -1,7 +1,16 @@
 from typing import List
 from datetime import date
 
-from fastapi import APIRouter, Depends, status, UploadFile, File, Request, Form, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    status,
+    UploadFile,
+    File,
+    Request,
+    Form,
+    HTTPException,
+)
 
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
@@ -12,30 +21,28 @@ from core import get_db, configs
 from exceptions import InvalidOperationException, BadRequestException
 
 from schemas import AttendeeRead, AttendeeCreate, RequestCreate, AttendeeUpdate
-from services import attendee_service, request_service, country_service, document_service, user_service
-
-router = APIRouter(
-    prefix="/attendee", tags=["Attendees"]
+from services import (
+    attendee_service,
+    request_service,
+    country_service,
+    document_service,
+    user_service,
 )
 
+router = APIRouter(prefix="/attendee", tags=["Attendees"])
 
-@router.post("/{attendee_id}/upload-photo/",
-             summary="Upload Image File")
+
+@router.post("/{attendee_id}/upload-photo/", summary="Upload Image File")
 async def upload_attendee_photo(
-    attendee_id: str,
-    photo: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    attendee_id: str, photo: UploadFile = File(...), db: Session = Depends(get_db)
 ):
     attendee = await attendee_service.upload_photo(db, attendee_id, photo)
     return attendee
 
 
-@router.post("/{attendee_id}/upload-photo-scan/",
-             summary="Upload Image File")
+@router.post("/{attendee_id}/upload-photo-scan/", summary="Upload Image File")
 async def upload_attendee_photo_scan(
-    attendee_id: str,
-    photo: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    attendee_id: str, photo: UploadFile = File(...), db: Session = Depends(get_db)
 ):
     attendee = await attendee_service.upload_photo_scan(db, attendee_id, photo)
     return attendee
@@ -45,7 +52,7 @@ async def upload_attendee_photo_scan(
     "/all",
     response_model=List[AttendeeRead],
     summary="Get all Attendees by request",
-    response_class=HTMLResponse
+    response_class=HTMLResponse,
 )
 async def get_all(
     *,
@@ -53,7 +60,7 @@ async def get_all(
     request: Request,
     skip: int = 0,
     limit: int = 100,
-    Authorize: AuthJWT = Depends()
+    Authorize: AuthJWT = Depends(),
 ):
     """
     Get all Requests
@@ -63,19 +70,12 @@ async def get_all(
     user = user_service.get_by_id(db, user_id)
     attendees = attendee_service.get_multi(db, skip, limit)
     return configs.templates.TemplateResponse(
-        "all_attendees.html",
-        {
-            "request": request,
-            "attendees": attendees,
-            "user": user
-        }
+        "all_attendees.html", {"request": request, "attendees": attendees, "user": user}
     )
 
 
 @router.get(
-    "/create/event_{event_id}",
-    summary="Create Attendee",
-    response_class=HTMLResponse
+    "/create/event_{event_id}", summary="Create Attendee", response_class=HTMLResponse
 )
 async def create_attendee_form(
     *,
@@ -84,7 +84,7 @@ async def create_attendee_form(
     skip: int = 0,
     limit: int = 10,
     event_id: str,
-    Authorize: AuthJWT = Depends()
+    Authorize: AuthJWT = Depends(),
 ):
     """
     Create Attendee
@@ -113,12 +113,10 @@ async def create_attendee_form(
                 "user": user,
                 "countries": countries,
                 "document_types": document_types,
-            }
+            },
         )
     except Exception as e:
-        raise InvalidOperationException(
-            detail=f"Failed to create event: {str(e)}"
-        )
+        raise InvalidOperationException(detail=f"Failed to create event: {str(e)}")
 
 
 @router.post(
@@ -127,7 +125,8 @@ async def create_attendee_form(
     summary="Create Attendee",
 )
 async def create_attendee(
-    *, db: Session = Depends(get_db),
+    *,
+    db: Session = Depends(get_db),
     request: Request,
     Authorize: AuthJWT = Depends(),
     req_id: str,
@@ -174,7 +173,7 @@ async def create_attendee(
         sex=sex,
         country_id=country_id,
         doc_type_id=doc_type_id,
-        request_id=req_id
+        request_id=req_id,
     )
     try:
         db_obj = attendee_service.create(db, form)
@@ -183,24 +182,22 @@ async def create_attendee(
         # db.add(db_obj)
         db.commit()  # Commit the transaction
         return RedirectResponse(
-            url=f"/api/client/attendee/create/event_{event_id}/request_{req_id}", status_code=status.HTTP_303_SEE_OTHER
+            url=f"/api/client/attendee/create/event_{event_id}/request_{req_id}",
+            status_code=status.HTTP_303_SEE_OTHER,
         )
     except BadRequestException as e:
         db.rollback()  # Roll back the transaction on error
         error_message = str(e)
         return configs.templates.TemplateResponse(
-            "create_attendee.html", {
-                "request": request,
-                "error": error_message,
-                "user": user
-            }
+            "create_attendee.html",
+            {"request": request, "error": error_message, "user": user},
         )
 
 
 @router.get(
     "/create/event_{event_id}/request_{req_id}",
     summary="Create Attendee",
-    response_class=HTMLResponse
+    response_class=HTMLResponse,
 )
 async def create_attendee_form_with_request(
     *,
@@ -210,7 +207,7 @@ async def create_attendee_form_with_request(
     limit: int = 10,
     event_id: str,
     req_id: str,
-    Authorize: AuthJWT = Depends()
+    Authorize: AuthJWT = Depends(),
 ):
     """
     Create Attendee
@@ -238,15 +235,12 @@ async def create_attendee_form_with_request(
                     "request": request,
                     "request_id": request_id,
                     "user": user,
-
                     "countries": countries,
                     "document_types": document_types,
-                }
+                },
             )
         except Exception as e:
-            raise InvalidOperationException(
-                detail=f"Failed to create event: {str(e)}"
-            )
+            raise InvalidOperationException(detail=f"Failed to create event: {str(e)}")
     else:
         user = user_service.get_by_id(db, user_id)
         request_id = request_service.get_by_id(db, req_id)
@@ -258,14 +252,14 @@ async def create_attendee_form_with_request(
                 "user": user,
                 "countries": countries,
                 "document_types": document_types,
-            }
+            },
         )
 
 
 @router.get(
     "/update/attendee_{attendee_id}",
     summary="Update Attendee",
-    response_class=HTMLResponse
+    response_class=HTMLResponse,
 )
 async def update_attendee_form(
     *,
@@ -287,7 +281,9 @@ async def update_attendee_form(
     try:
         attendee = attendee_service.get_by_id(db, attendee_id)
         if not attendee:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Attendee not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Attendee not found"
+            )
 
         return configs.templates.TemplateResponse(
             "update_attendee.html",
@@ -297,7 +293,7 @@ async def update_attendee_form(
                 "user": user,
                 "countries": countries,
                 "document_types": document_types,
-            }
+            },
         )
     except Exception as e:
         raise InvalidOperationException(
@@ -358,7 +354,7 @@ async def update_attendee(
         sex_id=sex_id or attendee.sex_id,
         country_id=country_id or attendee.country_id,
         doc_type_id=doc_type_id or attendee.doc_type_id,
-        request_id=attendee.request_id
+        request_id=attendee.request_id,
     )
     try:
         obj = attendee_service.update(db=db, db_obj=attendee, obj_in=updated_data)
@@ -367,24 +363,23 @@ async def update_attendee(
         await attendee_service.upload_doc_scan(db, obj.id, doc_scan)
         db.commit()
         return RedirectResponse(
-            url=f"/api/client/requests/request_{obj.request_id}/attendees", status_code=status.HTTP_303_SEE_OTHER
+            url=f"/api/client/requests/request_{obj.request_id}/attendees",
+            status_code=status.HTTP_303_SEE_OTHER,
         )
     except Exception as e:
-        raise InvalidOperationException(
-            detail=f"Failed to update attendee: {str(e)}"
-        )
+        raise InvalidOperationException(detail=f"Failed to update attendee: {str(e)}")
 
 
 @router.delete(
     "/delete/attendee_{attendee_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete Attendee"
+    summary="Delete Attendee",
 )
 async def remove_attendee(
-        request: Request,
-        attendee_id: str,
-        db: Session = Depends(get_db),
-        Authorize: AuthJWT = Depends(),
+    request: Request,
+    attendee_id: str,
+    db: Session = Depends(get_db),
+    Authorize: AuthJWT = Depends(),
 ):
     Authorize.jwt_required()
     try:
@@ -398,5 +393,5 @@ async def remove_attendee(
             "all_attendees.html",
             {
                 "request": request,
-            }
+            },
         )

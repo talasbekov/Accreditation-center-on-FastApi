@@ -74,7 +74,9 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         obj = self.get_by_id(db, id)
         print(obj, "remove_obj")
         if not obj:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{obj.name} not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail=f"{obj.name} not found"
+            )
         db.delete(obj)
         db.flush()
         return obj
@@ -82,13 +84,39 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def transliterate(self, text: str) -> str:
         # Простой словарь для транслитерации
         translit_dict = {
-            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd',
-            'е': 'e', 'ё': 'yo', 'ж': 'zh', 'з': 'z', 'и': 'i',
-            'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n',
-            'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't',
-            'у': 'u', 'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch',
-            'ш': 'sh', 'щ': 'shch', 'ы': 'y', 'э': 'e', 'ю': 'yu',
-            'я': 'ya', 'ь': '', 'ъ': ''
+            "а": "a",
+            "б": "b",
+            "в": "v",
+            "г": "g",
+            "д": "d",
+            "е": "e",
+            "ё": "yo",
+            "ж": "zh",
+            "з": "z",
+            "и": "i",
+            "й": "y",
+            "к": "k",
+            "л": "l",
+            "м": "m",
+            "н": "n",
+            "о": "o",
+            "п": "p",
+            "р": "r",
+            "с": "s",
+            "т": "t",
+            "у": "u",
+            "ф": "f",
+            "х": "kh",
+            "ц": "ts",
+            "ч": "ch",
+            "ш": "sh",
+            "щ": "shch",
+            "ы": "y",
+            "э": "e",
+            "ю": "yu",
+            "я": "ya",
+            "ь": "",
+            "ъ": "",
         }
 
         result = []
@@ -102,4 +130,4 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             else:
                 result.append(char)
 
-        return ''.join(result)
+        return "".join(result)

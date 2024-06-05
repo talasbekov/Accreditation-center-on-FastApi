@@ -8,9 +8,7 @@ from core import get_db
 from schemas import DocumentTypeRead, DocumentTypeUpdate, DocumentTypeCreate
 from services import document_service
 
-router = APIRouter(
-    prefix="/documents", tags=["DocumentTypes"]
-)
+router = APIRouter(prefix="/documents", tags=["DocumentTypes"])
 
 
 @router.get(
@@ -23,7 +21,6 @@ async def get_all(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-
 ):
     """
     Get all DocumentTypes
@@ -43,7 +40,6 @@ async def create(
     *,
     db: Session = Depends(get_db),
     body: DocumentTypeCreate,
-
 ):
     """
     Create DocumentType
@@ -60,7 +56,9 @@ async def create(
     summary="Get DocumentType by id",
 )
 async def get_by_id(
-    *, db: Session = Depends(get_db), id: str,
+    *,
+    db: Session = Depends(get_db),
+    id: str,
 ):
     """
     Get DocumentType by id
@@ -81,7 +79,6 @@ async def update(
     db: Session = Depends(get_db),
     id: str,
     body: DocumentTypeUpdate,
-
 ):
     """
     Update DocumentType
@@ -99,7 +96,9 @@ async def update(
     summary="Delete DocumentType",
 )
 async def delete(
-    *, db: Session = Depends(get_db), id: str,
+    *,
+    db: Session = Depends(get_db),
+    id: str,
 ):
     """
     Delete DocumentType

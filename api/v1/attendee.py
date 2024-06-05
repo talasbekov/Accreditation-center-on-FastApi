@@ -15,23 +15,25 @@ router = APIRouter(
 )
 
 
-@router.post("/{attendee_id}/upload-photo/", dependencies=[Depends(HTTPBearer())],
-             summary="Upload Image File")
+@router.post(
+    "/{attendee_id}/upload-photo/",
+    dependencies=[Depends(HTTPBearer())],
+    summary="Upload Image File",
+)
 async def upload_attendee_photo(
-    attendee_id: str,
-    photo: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    attendee_id: str, photo: UploadFile = File(...), db: Session = Depends(get_db)
 ):
     attendee = await attendee_service.upload_photo(db, attendee_id, photo)
     return attendee
 
 
-@router.post("/{attendee_id}/upload-photo-scan/", dependencies=[Depends(HTTPBearer())],
-             summary="Upload Image File")
+@router.post(
+    "/{attendee_id}/upload-photo-scan/",
+    dependencies=[Depends(HTTPBearer())],
+    summary="Upload Image File",
+)
 async def upload_attendee_photo_scan(
-    attendee_id: str,
-    photo: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    attendee_id: str, photo: UploadFile = File(...), db: Session = Depends(get_db)
 ):
     attendee = await attendee_service.upload_photo_scan(db, attendee_id, photo)
     return attendee

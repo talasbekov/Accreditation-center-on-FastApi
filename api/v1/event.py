@@ -42,7 +42,9 @@ async def get_all(
     """
     Authorize.jwt_required()
     events = event_service.get_multi(db, skip, limit)
-    return configs.templates.TemplateResponse("events.html", {"request": request, "events": events})
+    return configs.templates.TemplateResponse(
+        "events.html", {"request": request, "events": events}
+    )
 
 
 @router.post(
@@ -121,6 +123,7 @@ async def delete(
     """
     Authorize.jwt_required()
     event_service.remove(db, str(id))
+
 
 @router.get(
     "/with_attendees/{id}/",

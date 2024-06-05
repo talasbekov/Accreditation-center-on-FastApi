@@ -34,4 +34,3 @@ class UserRead(UserBase, ReadNamedModel):
         if len(v) != 12:
             raise ValueError("iin must be exactly 12 digits")
         return v
-

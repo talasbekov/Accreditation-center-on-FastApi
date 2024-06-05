@@ -8,25 +8,35 @@ from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 from core import get_db
 from exceptions import BadRequestException
-from schemas import GovAttendeeCreate, GovAttendeeRequest, RequestCreate, AttendeeCreate, GovAttendeeRead
-from services import attendee_service, request_service, event_service, country_service, document_service
-
-router = APIRouter(
-    prefix="/gov", tags=["GovAttendees"]
+from schemas import (
+    GovAttendeeCreate,
+    GovAttendeeRequest,
+    RequestCreate,
+    AttendeeCreate,
+    GovAttendeeRead,
 )
+from services import (
+    attendee_service,
+    request_service,
+    event_service,
+    country_service,
+    document_service,
+)
+
+router = APIRouter(prefix="/gov", tags=["GovAttendees"])
 
 
 @router.get(
     "/data",
     response_model=List[GovAttendeeRead],
-    summary="Get all Attendees by request"
+    summary="Get all Attendees by request",
 )
 async def get_all(
     *,
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-    Authorize: AuthJWT = Depends()
+    Authorize: AuthJWT = Depends(),
 ):
     """
     Get all necessary data
@@ -38,9 +48,7 @@ async def get_all(
     attendees = []
     for event, country, doc_type in zip(events, countries, doc_types):
         attendee = GovAttendeeRead(
-            events=[event],
-            countries=[country],
-            doc_types=[doc_type]
+            events=[event], countries=[country], doc_types=[doc_type]
         )
         attendees.append(attendee)
 
@@ -50,10 +58,10 @@ async def get_all(
 def correct_base64_padding(data: str) -> str:
     """Add padding to Base64 string if necessary."""
     # Remove existing padding
-    data = data.rstrip('=')
+    data = data.rstrip("=")
     # Calculate necessary padding
     padding_needed = -len(data) % 4
-    return data + '=' * padding_needed
+    return data + "=" * padding_needed
 
 
 def is_valid_base64(data: str) -> bool:
@@ -71,12 +79,13 @@ def is_valid_base64(data: str) -> bool:
     "/create/attendee",
     status_code=status.HTTP_201_CREATED,
     summary="Create Attendee",
-    response_model=GovAttendeeCreate
+    response_model=GovAttendeeCreate,
 )
 async def create_attendee(
-        *, db: Session = Depends(get_db),
-        Authorize: AuthJWT = Depends(),
-        body: GovAttendeeRequest,
+    *,
+    db: Session = Depends(get_db),
+    Authorize: AuthJWT = Depends(),
+    body: GovAttendeeRequest,
 ):
     Authorize.jwt_required()
 
@@ -95,7 +104,9 @@ async def create_attendee(
             if not is_valid_base64(photo_data_str):
                 raise BadRequestException(detail="Invalid base64 data for photo")
             if not is_valid_base64(doc_scan_data_str):
-                raise BadRequestException(detail="Invalid base64 data for document scan")
+                raise BadRequestException(
+                    detail="Invalid base64 data for document scan"
+                )
 
             try:
                 # Decode base64 photo and document scan
@@ -116,12 +127,8 @@ async def create_attendee(
                 db,
                 obj_in=AttendeeCreate(
                     request_id=request_for_attendees.id,
-                    **attendee.dict(
-                        exclude={
-                            "photo", "doc_scan"
-                        }
-                    )
-                )
+                    **attendee.dict(exclude={"photo", "doc_scan"}),
+                ),
             )
 
             # Save the images to appropriate locations or services

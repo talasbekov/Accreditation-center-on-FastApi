@@ -17,17 +17,17 @@ router = APIRouter(prefix="/auth", tags=["Authorization"])
 
 @router.get("/", response_class=HTMLResponse)
 async def get_login_form(request: Request):
-    """ Возвращает страницу для входа """
+    """Возвращает страницу для входа"""
     return configs.templates.TemplateResponse("login_form.html", {"request": request})
 
 
 @router.post("/login", summary="Login")
 async def login(
-        request: Request,
-        email: EmailStr = Form(...),  # Получаем каждое поле через Form
-        password: str = Form(...),
-        db: Session = Depends(get_db),
-        Authorize: AuthJWT = Depends()
+    request: Request,
+    email: EmailStr = Form(...),  # Получаем каждое поле через Form
+    password: str = Form(...),
+    db: Session = Depends(get_db),
+    Authorize: AuthJWT = Depends(),
 ):
     form = LoginForm(email=email, password=password)  # Создаем объект модели
     try:
@@ -37,31 +37,36 @@ async def login(
         except Exception as e:
             print(e)
         # Установка токенов в куки для использования в последующих запросах
-        response = RedirectResponse(url="/api/client/events", status_code=status.HTTP_303_SEE_OTHER)
+        response = RedirectResponse(
+            url="/api/client/events", status_code=status.HTTP_303_SEE_OTHER
+        )
         response.set_cookie(
             key="access_token_cookie",
             value=auth["access_token"],
             httponly=True,
-            path='/',
+            path="/",
             secure=True,
-            samesite='Lax'
+            samesite="Lax",
         )
         response.set_cookie(
             key="X-CSRF-Token",
             value=secrets.token_urlsafe(),
             httponly=True,
-            path='/',
+            path="/",
             secure=True,
-            samesite='Lax'
+            samesite="Lax",
         )
         return response
     except BadRequestException as e:
         # В случае ошибки возвращаем пользователя на форму входа с сообщением об ошибке
-        return configs.templates.TemplateResponse("login_form.html", {"request": request, "error": str(e)})
+        return configs.templates.TemplateResponse(
+            "login_form.html", {"request": request, "error": str(e)}
+        )
 
 
 # @router.post("/register", summary="Register")
 # async def register(form: RegistrationForm, db: Session = Depends(get_db)):
+
 
 @router.post(
     "/register/user",
@@ -69,7 +74,8 @@ async def login(
     summary="Create User",
 )
 async def create(
-    *, db: Session = Depends(get_db),
+    *,
+    db: Session = Depends(get_db),
     request: Request,
     Authorize: AuthJWT = Depends(),
     name: str = Form(...),
@@ -81,7 +87,7 @@ async def create(
     re_password: str = Form()
 ):
     Authorize.jwt_required()
-    user_email = Authorize.get_raw_jwt()['email']
+    user_email = Authorize.get_raw_jwt()["email"]
     form = RegistrationForm(
         name=name,
         email=email,
@@ -89,22 +95,21 @@ async def create(
         iin=iin,
         phone_number=phone_number,
         password=password,
-        re_password=re_password
+        re_password=re_password,
     )
     try:
         db_obj = auth_service.register(db, form)
         db.add(db_obj)
         db.commit()  # Commit the transaction
-        return RedirectResponse(url="/api/client/users", status_code=status.HTTP_303_SEE_OTHER)
+        return RedirectResponse(
+            url="/api/client/users", status_code=status.HTTP_303_SEE_OTHER
+        )
     except BadRequestException as e:
         db.rollback()  # Roll back the transaction on error
         error_message = str(e)
         return configs.templates.TemplateResponse(
-            "create_user.html", {
-                "request": request,
-                "error": error_message,
-                "user_email": user_email
-            }
+            "create_user.html",
+            {"request": request, "error": error_message, "user_email": user_email},
         )
 
 
@@ -122,7 +127,9 @@ def refresh_token(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db))
 
 @router.post("/logout")
 def logout(request: Request):
-    response = RedirectResponse(url='/api/client/auth', status_code=status.HTTP_303_SEE_OTHER)
-    response.delete_cookie('access_token')
-    response.delete_cookie('X-CSRF-Token')
+    response = RedirectResponse(
+        url="/api/client/auth", status_code=status.HTTP_303_SEE_OTHER
+    )
+    response.delete_cookie("access_token")
+    response.delete_cookie("X-CSRF-Token")
     return response

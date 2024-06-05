@@ -34,4 +34,3 @@ class EventReadWithAttendies(EventBase):
 
 class GovEventRead(NamesModel):
     pass
-

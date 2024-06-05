@@ -63,7 +63,7 @@ class GovAttendeeCreate(Model):
     transcription: str
     photo: str
     doc_scan: str
-    
+
 
 class GovAttendeeRequest(Model):
     event_id: int

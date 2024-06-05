@@ -34,7 +34,8 @@ def get_iso_weekdays_between_dates(start_date, end_date, target_iso_weekday):
     end_datetime = datetime.combine(end_date, datetime.min.time())
 
     current_date = start_datetime + timedelta(
-        days=(target_iso_weekday - start_datetime.isoweekday() + 7) % 7)
+        days=(target_iso_weekday - start_datetime.isoweekday() + 7) % 7
+    )
 
     iso_weekdays = []
 
@@ -52,4 +53,3 @@ def get_last_date_of_month(year, month):
         last_date = datetime(year, month + 1, 1) + timedelta(days=-1)
 
     return last_date.strftime("%Y-%m-%d")
-

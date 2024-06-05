@@ -5,7 +5,7 @@ from .attendee import (
     AttendeeUpdate,
     AttendeeRead,
     GovAttendeeCreate,
-    GovAttendeeRequest
+    GovAttendeeRequest,
 )
 from .category import CategoryBase, CategoryCreate, CategoryUpdate, CategoryRead
 from .city import CityBase, CityCreate, CityUpdate, CityRead
@@ -16,7 +16,13 @@ from .document_type import (
     DocumentTypeUpdate,
     DocumentTypeRead,
 )
-from .event import EventBase, EventCreate, EventUpdate, EventRead, EventReadWithAttendies
+from .event import (
+    EventBase,
+    EventCreate,
+    EventUpdate,
+    EventRead,
+    EventReadWithAttendies,
+)
 from .request import RequestBase, RequestCreate, RequestUpdate, RequestRead
 from .user import UserBase, UserCreate, UserUpdate, UserRead
 from .auth import LoginForm, RegistrationForm, UserRegistrationForm

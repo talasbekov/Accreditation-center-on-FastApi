@@ -8,9 +8,7 @@ from core import get_db
 from schemas import CountryRead, CountryUpdate, CountryCreate
 from services import country_service
 
-router = APIRouter(
-    prefix="/countries", tags=["Countrys"]
-)
+router = APIRouter(prefix="/countries", tags=["Countrys"])
 
 
 @router.get(
@@ -34,7 +32,6 @@ async def get_all(
 @router.post(
     "",
     status_code=status.HTTP_201_CREATED,
-
     response_model=CountryRead,
     summary="Create Country",
 )
@@ -42,7 +39,6 @@ async def create(
     *,
     db: Session = Depends(get_db),
     body: CountryCreate,
-
 ):
     """
     Create Country
@@ -55,12 +51,13 @@ async def create(
 
 @router.get(
     "/{id}/",
-
     response_model=CountryRead,
     summary="Get Country by id",
 )
 async def get_by_id(
-    *, db: Session = Depends(get_db), id: str,
+    *,
+    db: Session = Depends(get_db),
+    id: str,
 ):
     """
     Get Country by id
@@ -73,7 +70,6 @@ async def get_by_id(
 
 @router.put(
     "/{id}/",
-
     response_model=CountryRead,
     summary="Update Country",
 )
@@ -82,7 +78,6 @@ async def update(
     db: Session = Depends(get_db),
     id: str,
     body: CountryUpdate,
-
 ):
     """
     Update Country
@@ -97,11 +92,12 @@ async def update(
 @router.delete(
     "/{id}/",
     status_code=status.HTTP_204_NO_CONTENT,
-
     summary="Delete Country",
 )
 async def delete(
-    *, db: Session = Depends(get_db), id: str,
+    *,
+    db: Session = Depends(get_db),
+    id: str,
 ):
     """
     Delete Country

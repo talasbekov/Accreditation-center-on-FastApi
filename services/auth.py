@@ -27,11 +27,17 @@ class AuthService:
 
     def register(self, db: Session, form: RegistrationForm):
         if user_service.get_by_email(db, EmailStr(form.email).lower()):
-            raise BadRequestException(detail="Пользователь с таким Email-ом уже существует!")
+            raise BadRequestException(
+                detail="Пользователь с таким Email-ом уже существует!"
+            )
         if user_service.get_by_iin(db, form.iin):
-            raise BadRequestException(detail="Пользователь с таким ИИН-ом уже существует!")
+            raise BadRequestException(
+                detail="Пользователь с таким ИИН-ом уже существует!"
+            )
         if not is_valid_phone_number(form.phone_number):
-            raise BadRequestException(detail="Неправильно ввели телефонный номер! Попробуйте через +7")
+            raise BadRequestException(
+                detail="Неправильно ввели телефонный номер! Попробуйте через +7"
+            )
         if form.password != form.re_password:
             raise BadRequestException(detail="Ваши пороли не совпадают!")
 
@@ -108,7 +114,7 @@ class AuthService:
     def get_current_user(self, Authorize: AuthJWT = Depends()):
         Authorize.jwt_required()
         user_id = Authorize.get_jwt_subject()
-        user_email = Authorize.get_raw_jwt()['email']
+        user_email = Authorize.get_raw_jwt()["email"]
         print(user_email)
         return {"user_id": user_id, "user_email": user_email}
 

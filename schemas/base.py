@@ -56,4 +56,3 @@ class ReadTextModel(TextModel, ReadModel):
     text: Optional[str]
     textKZ: Optional[str]
     textEN: Optional[str]
-

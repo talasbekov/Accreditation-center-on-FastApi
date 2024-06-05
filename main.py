@@ -78,11 +78,15 @@ async def add_process_time_header(request: Request, call_next):
     if isinstance(response, HTMLResponse):
         try:
             # Имитация получения данных пользователя
-            user_data = auth_service.get_current_user()  # Здесь предполагается синхронный вызов для примера
+            user_data = (
+                auth_service.get_current_user()
+            )  # Здесь предполагается синхронный вызов для примера
             # В реальности может потребоваться асинхронный вызов с await
             # Добавляем данные пользователя в контекст шаблона
-            new_content = configs.templates.TemplateResponse("base.html", {"request": request, **user_data,
-                                                                           "content": response.body.decode()})
+            new_content = configs.templates.TemplateResponse(
+                "base.html",
+                {"request": request, **user_data, "content": response.body.decode()},
+            )
             response.body = new_content.body
             response.headers.update(new_content.headers)
         except Exception as e:
@@ -109,6 +113,7 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 @app.get("/", include_in_schema=False)
 async def docs_redirect():
     return RedirectResponse(url="/api/client/auth")
+
 
 # @app.websocket("/ws")
 # async def websocket_endpoint(

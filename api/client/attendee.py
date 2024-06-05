@@ -12,7 +12,7 @@ from core import get_db, configs
 from exceptions import InvalidOperationException, BadRequestException
 
 from schemas import AttendeeRead, AttendeeCreate, RequestCreate, AttendeeUpdate
-from services import attendee_service, request_service, sex_service, country_service, document_service, user_service
+from services import attendee_service, request_service, country_service, document_service, user_service
 
 router = APIRouter(
     prefix="/attendee", tags=["Attendees"]
@@ -92,7 +92,6 @@ async def create_attendee_form(
     """
     Authorize.jwt_required()
     user_id = Authorize.get_jwt_subject()
-    sexes = sex_service.get_multi(db, skip, limit)
     countries = country_service.get_multi(db, skip, limit)
     document_types = document_service.get_multi(db, skip, limit)
     user = Authorize.get_jwt_subject()
@@ -112,7 +111,6 @@ async def create_attendee_form(
                 "request": request,
                 "request_id": request_id,
                 "user": user,
-                "sexes": sexes,
                 "countries": countries,
                 "document_types": document_types,
             }
@@ -143,7 +141,7 @@ async def create_attendee(
     doc_issue: str = Form(...),
     visit_object: str = Form(...),
     transcription: str = Form(...),
-    sex_id: str = Form(...),
+    sex: str = Form(...),
     country_id: str = Form(...),
     doc_type_id: str = Form(...),
     birth_date: date = Form(...),
@@ -173,7 +171,7 @@ async def create_attendee(
         doc_end=doc_end,
         photo=None,
         doc_scan=None,
-        sex_id=sex_id,
+        sex=sex,
         country_id=country_id,
         doc_type_id=doc_type_id,
         request_id=req_id
@@ -221,7 +219,6 @@ async def create_attendee_form_with_request(
     Authorize.jwt_required()
     user_id = Authorize.get_jwt_subject()
 
-    sexes = sex_service.get_multi(db, skip, limit)
     countries = country_service.get_multi(db, skip, limit)
     document_types = document_service.get_multi(db, skip, limit)
     user = Authorize.get_jwt_subject()
@@ -241,7 +238,7 @@ async def create_attendee_form_with_request(
                     "request": request,
                     "request_id": request_id,
                     "user": user,
-                    "sexes": sexes,
+
                     "countries": countries,
                     "document_types": document_types,
                 }
@@ -259,7 +256,6 @@ async def create_attendee_form_with_request(
                 "request": request,
                 "request_id": request_id,
                 "user": user,
-                "sexes": sexes,
                 "countries": countries,
                 "document_types": document_types,
             }
@@ -286,7 +282,6 @@ async def update_attendee_form(
     Authorize.jwt_required()
     user_id = Authorize.get_jwt_subject()
     user = user_service.get_by_id(db, user_id)
-    sexes = sex_service.get_multi(db, skip, limit)
     countries = country_service.get_multi(db, skip, limit)
     document_types = document_service.get_multi(db, skip, limit)
     try:
@@ -300,7 +295,6 @@ async def update_attendee_form(
                 "request": request,
                 "attendee": attendee,
                 "user": user,
-                "sexes": sexes,
                 "countries": countries,
                 "document_types": document_types,
             }

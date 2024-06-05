@@ -80,12 +80,13 @@
                                 <input type="text" class="form-control" name="post" id="post" placeholder="РукАП" required>
                             </div>
                             <div class="col-12 col-md-6">
-                              <label for="sex_id" class="form-label">Пол <span class="text-danger">*</span></label>
-                              <select class="form-control" name="sex_id" id="sex_id" required>
+                              <label for="sex" class="form-label">Пол <span class="text-danger">*</span></label>
+                              <select class="form-control" name="sex" id="sex" required>
                                   <option value="">Выбрать пол</option>
-                                  {% for sex in sexes %}
-                                  <option value="{{ sex.id }}">{{ sex.name }}</option>
-                                  {% endfor %}
+
+                                  <option value="True">Мужской</option>
+                                  <option value="False">Женский</option>
+
                               </select>
                             </div>
                             <div class="col-12 col-md-6">

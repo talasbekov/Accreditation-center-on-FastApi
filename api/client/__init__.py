@@ -10,7 +10,6 @@ from .country import router as country_router
 from .document_type import router as doc_router
 from .event import router as event_router
 from .request import router as request_router
-from .sex import router as sex_router
 from .for_government_agencies import router as gov_router
 
 router = APIRouter(prefix="/client")
@@ -25,5 +24,4 @@ router.include_router(country_router)
 router.include_router(doc_router)
 router.include_router(event_router)
 router.include_router(request_router)
-router.include_router(sex_router)
 router.include_router(gov_router)

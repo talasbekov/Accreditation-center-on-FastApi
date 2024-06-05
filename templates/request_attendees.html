@@ -36,7 +36,11 @@
                     </td>
                     <td>
                       <a href="attendee_detail.html">
-                        <img src="{{ url_for('media', path=attendee.doc_scan) }}" width="70" height="70">
+                        {% if attendee.doc_scan %}
+                            <img src="{{ url_for('media', path=attendee.doc_scan) }}" width="70" height="70">
+                        {% else %}
+                            <img src="" width="70" height="70">
+                        {% endif %}
                       </a>
                     </td>
                     <td>{{ attendee.surname }} {{ attendee.firstname }} {{ attendee.patronymic }}</td>

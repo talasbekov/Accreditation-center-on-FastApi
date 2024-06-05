@@ -6,8 +6,6 @@ from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 
 from core import get_db
-# from exceptions import NotFoundException
-# from models import Attendee
 
 from schemas import AttendeeRead, AttendeeUpdate, AttendeeCreate
 from services import attendee_service

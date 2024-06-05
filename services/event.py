@@ -78,7 +78,7 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
                     "photo": attendee.photo,
                     "post": attendee.post,
                     "request": attendee.request_id,
-                    "sexId": attendee.sex_id,
+                    "sex": 10101 if attendee.sex else 10000102 if attendee.sex is not None else None,
                     "surname": attendee.surname,
                     "transcription": attendee.transcription,
                     "visitObjects": attendee.visit_object

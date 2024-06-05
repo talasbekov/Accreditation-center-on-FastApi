@@ -11,6 +11,14 @@ class Model(BaseModel):
         arbitrary_types_allowed = True
 
 
+class NamesModel(Model):
+    id: int
+    name: Optional[str]
+
+    class Config:
+        orm_mode = True
+
+
 class NamedModel(Model):
     name: Optional[str]
     nameKZ: Optional[str]

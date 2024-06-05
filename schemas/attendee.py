@@ -69,6 +69,7 @@ class GovAttendeeRequest(Model):
     event_id: int
     attendees: List[GovAttendeeCreate]
 
+
 class AttendeeUpdate(AttendeeBase):
     pass
 

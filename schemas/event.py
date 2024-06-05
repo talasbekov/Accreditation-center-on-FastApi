@@ -1,6 +1,6 @@
 from typing import Optional, List
 from datetime import date
-from schemas import ReadNamedModel, NamedModel
+from schemas import ReadNamedModel, NamedModel, NamesModel
 from .request import RequestRead
 from .attendee import AttendeeRead
 from .user import UserRead
@@ -30,3 +30,8 @@ class EventRead(EventBase, ReadNamedModel):
 
 class EventReadWithAttendies(EventBase):
     attendees: Optional[List[AttendeeRead]]
+
+
+class GovEventRead(NamesModel):
+    pass
+

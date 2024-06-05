@@ -5,7 +5,6 @@ from .document_type import document_service
 from .permission import permission_service
 from .event import event_service
 from .request import request_service
-from .sex import sex_service
 from .user import user_service
 from .auth import auth_service
 from .attendee import attendee_service

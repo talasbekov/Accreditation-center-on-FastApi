@@ -7,5 +7,4 @@ from .document_type import DocumentType
 from .permission import Permission, PermissionType, PermissionEnum
 from .event import Event
 from .request import Request
-from .sex import Sex
 from .user import User

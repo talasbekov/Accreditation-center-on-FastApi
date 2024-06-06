@@ -1,22 +1,26 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Request
 from fastapi.security import HTTPBearer
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 
-from core import get_db
+from core import get_db, configs
+
 
 from schemas import EventRead, EventUpdate, EventCreate, EventReadWithAttendies
 from services import event_service
+
 
 router = APIRouter(
     prefix="/events", tags=["Events"], dependencies=[Depends(HTTPBearer())]
 )
 
+
 @router.get("/download/{event_id}")
 async def download_event_zip(event_id: str, db: Session = Depends(get_db)):
     return event_service.download_event(db, event_id)
+
 
 @router.get(
     "",
@@ -25,6 +29,7 @@ async def download_event_zip(event_id: str, db: Session = Depends(get_db)):
     summary="Get all Events",
 )
 async def get_all(
+    request: Request,
     *,
     db: Session = Depends(get_db),
     skip: int = 0,
@@ -36,7 +41,10 @@ async def get_all(
 
     """
     Authorize.jwt_required()
-    return event_service.get_multi(db, skip, limit)
+    events = event_service.get_multi(db, skip, limit)
+    return configs.templates.TemplateResponse(
+        "events.html", {"request": request, "events": events}
+    )
 
 
 @router.post(
@@ -115,6 +123,7 @@ async def delete(
     """
     Authorize.jwt_required()
     event_service.remove(db, str(id))
+
 
 @router.get(
     "/with_attendees/{id}/",

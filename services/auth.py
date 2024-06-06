@@ -1,6 +1,6 @@
 from datetime import timedelta, datetime
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
 from fastapi_jwt_auth import AuthJWT
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
@@ -11,42 +11,48 @@ from models import User
 from schemas import LoginForm, RegistrationForm, UserCreate
 from services import user_service, permission_service
 
-from utils import hash_password, verify_password
+from utils import hash_password, verify_password, is_valid_phone_number
 
 
 class AuthService:
 
     def login(self, form: LoginForm, db: Session, Authorize: AuthJWT):
         user = user_service.get_by_email(db, EmailStr(form.email).lower())
-
-        if not user:
+        if not user or not verify_password(form.password, user.password):
             raise BadRequestException(detail="Incorrect email or password!")
-        if not verify_password(form.password, user.password):
-            raise BadRequestException(detail="Incorrect email or password")
 
         self._set_last_signed_at(db, user)
-
         access_token, refresh_token = self._generate_tokens(db, Authorize, user)
-
         return {"access_token": access_token, "refresh_token": refresh_token}
 
-    def register(self, form: RegistrationForm, db: Session):
-
+    def register(self, db: Session, form: RegistrationForm):
         if user_service.get_by_email(db, EmailStr(form.email).lower()):
-            raise BadRequestException(detail="User with this email already exists!")
+            raise BadRequestException(
+                detail="Пользователь с таким Email-ом уже существует!"
+            )
+        if user_service.get_by_iin(db, form.iin):
+            raise BadRequestException(
+                detail="Пользователь с таким ИИН-ом уже существует!"
+            )
+        if not is_valid_phone_number(form.phone_number):
+            raise BadRequestException(
+                detail="Неправильно ввели телефонный номер! Попробуйте через +7"
+            )
         if form.password != form.re_password:
-            raise BadRequestException(detail="Password mismatch!")
+            raise BadRequestException(detail="Ваши пороли не совпадают!")
 
         user_obj_in = UserCreate(
             email=EmailStr(form.email).lower(),
             name=form.name,
+            workplace=form.workplace,
+            phone_number=form.phone_number,
             iin=form.iin,
+            admin=form.admin,
             password=hash_password(form.password),
-            is_admin=False,
         )
-
+        print(user_obj_in, "user_obj_in")
         user = user_service.create(db=db, obj_in=user_obj_in)
-
+        print(user)
         return user
 
     def refresh_token(self, db: Session, Authorize: AuthJWT):
@@ -62,7 +68,7 @@ class AuthService:
                 detail="The user belonging to this token no longer exist",
             )
 
-        access_token, refresh_token = self._generate_tokens(Authorize, user)
+        access_token, refresh_token = self._generate_tokens(db, Authorize, user)
 
         return {"access_token": access_token, "refresh_token": refresh_token}
 
@@ -79,7 +85,7 @@ class AuthService:
         # Определение дополнительных утверждений для токена
         user_claims = {
             "role": str(user.workplace),
-            "iin": str(user.iin),
+            "email": str(user.email),
             "permissions": permissions,
         }
 
@@ -104,6 +110,14 @@ class AuthService:
 
         db.add(user)
         db.flush()
+
+    # Зависимость для аутентификации и получения данных пользователя
+    def get_current_user(self, Authorize: AuthJWT = Depends()):
+        Authorize.jwt_required()
+        user_id = Authorize.get_jwt_subject()
+        user_email = Authorize.get_raw_jwt()["email"]
+        print(user_email)
+        return {"user_id": user_id, "user_email": user_email}
 
 
 auth_service = AuthService()

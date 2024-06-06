@@ -1,24 +1,3 @@
-#version: '3'
-#
-#services:
-#  accreditation-center:
-#    platform: linux/amd64
-#    command: bash -c "uvicorn main:app --host 0.0.0.0 --port 8003 --log-config log.ini --workers ${NUMBER_OF_WORKERS}"
-#    build: .
-#    container_name: accreditation-center
-#    restart: always
-#    ports:
-#      - "8003:8003"
-#    volumes:
-#      - .:/app
-#    network_mode: "postgre"
-#    deploy:
-#      resources:
-#        limits:
-#          memory: 4g
-
-version: '3'
-
 services:
 
   postgres:
@@ -38,10 +17,10 @@ services:
       - ./.data:/var/lib/postgresql/data
     networks:
       - backend-dev
-#    command: bash -c "ruff check . --ignore E712,E711 --exclude ./alembic,__init__.py && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --log-config log.ini --workers ${NUMBER_OF_WORKERS}"
+#    command: bash -c "ruff check . --ignore E712,E711 --exclude ./alembic,__init__.py,./venv && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --log-config log.ini --workers ${NUMBER_OF_WORKERS}"
   accreditation-center:
     platform: linux/amd64
-    command: bash -c "ruff check . --ignore E712,E711 --exclude ./alembic,__init__.py && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --log-config log.ini --workers ${NUMBER_OF_WORKERS}"
+    command: bash -c "ruff check . --ignore E712,E711 --exclude ./alembic,__init__.py,./venv && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --log-config log.ini --workers ${NUMBER_OF_WORKERS}"
     build: .
     container_name: accreditation-center
     restart: always
@@ -49,7 +28,7 @@ services:
         - "8000:8000"
     volumes:
       - .:/app
-      - /app/.venv
+      - /app/venv
     networks:
       - backend-dev
     depends_on:

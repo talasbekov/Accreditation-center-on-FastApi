@@ -1,5 +1,6 @@
-from sqlalchemy import String, Column, ForeignKey, Date
+from sqlalchemy import String, Column, ForeignKey, Date, Boolean
 from sqlalchemy.orm import relationship
+
 
 from .base import Model
 
@@ -22,13 +23,15 @@ class Attendee(Model):
     doc_scan = Column(String, nullable=True)  # Путь к файлу вместо ImageField
     visit_object = Column(String(1024))
     transcription = Column(String(128))
+    sex = Column(Boolean, nullable=False)
 
-    sex_id = Column(String(), ForeignKey("sexes.id"), nullable=True)
     country_id = Column(String(), ForeignKey("countries.id"), nullable=True)
-    request_id = Column(String(), ForeignKey("requests.id", ondelete="CASCADE"), nullable=True)
+    request_id = Column(
+        String(), ForeignKey("requests.id", ondelete="CASCADE"), nullable=True
+    )
     doc_type_id = Column(String(), ForeignKey("document_types.id"), nullable=True)
 
-    sexes = relationship("Sex", back_populates="attendees")
+    # sexes = relationship("Sex", back_populates="attendees")
     countries = relationship("Country", back_populates="attendees")
     requests = relationship("Request", back_populates="attendees")
     document_types = relationship("DocumentType", back_populates="attendees")

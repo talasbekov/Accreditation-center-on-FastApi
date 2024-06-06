@@ -1,5 +1,5 @@
 from typing import Optional
-from schemas import ReadNamedModel, NamedModel
+from schemas import ReadNamedModel, NamedModel, NamesModel
 
 
 class CountryBase(NamedModel):
@@ -17,4 +17,8 @@ class CountryUpdate(CountryBase):
 
 
 class CountryRead(CountryBase, ReadNamedModel):
+    pass
+
+
+class GovCountryRead(NamesModel):
     pass

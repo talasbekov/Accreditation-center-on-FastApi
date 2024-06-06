@@ -11,9 +11,7 @@ from .config import configs
 SQLALCHEMY_DATABASE_URL = f"postgresql://{configs.POSTGRES_USER}:{configs.POSTGRES_PASSWORD}@{configs.POSTGRES_HOSTNAME}:{configs.DATABASE_PORT}/{configs.POSTGRES_DB}"
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    pool_size=20,
-    echo=configs.SQLALCHEMY_ECHO
+    SQLALCHEMY_DATABASE_URL, pool_size=20, echo=configs.SQLALCHEMY_ECHO
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

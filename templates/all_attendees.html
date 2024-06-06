@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<!-- Table 1 - Bootstrap Brain Component -->
+<section class="py-3 py-md-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-12">
+        <div class="card widget-card border-light bg-light shadow-sm">
+          <div class="card-body p-4">
+            <h5 class="card-title widget-card-title mb-4">Участники одной заявки</h5>
+            <p>56 участников</p>
+            <div class="table-responsive bg-light">
+              <table class="table table-borderless bsb-table-xl text-nowrap align-middle m-0 bg-light">
+                <thead>
+                  <tr>
+                    <th>Фото</th>
+                    <th>Документ</th>
+                    <th>ФИО</th>
+                    <th>ИИН</th>
+                    <th>Гражданство</th>
+                    <th>Место работы</th>
+                    <th>Обьект</th>
+                    <th>Действие</th>
+                  </tr>
+                </thead>
+                {% for attendee in attendees %}
+                <tbody>
+                  <tr>
+                    <td>
+                      <a href="attendee_detail.html">
+                        {% if attendee.photo %}
+                            <img src="{{ url_for('media', path=attendee.photo) }}" width="70" height="70">
+                        {% else %}
+                            <img src="/path/to/default/image.jpg" width="70" height="70">
+                        {% endif %}
+                      </a>
+                    </td>
+                    <td>
+                      <a href="attendee_detail.html">
+
+                        {% if attendee.doc_scan %}
+                            <img src="{{ url_for('media', path=attendee.doc_scan) }}" width="70" height="70">
+                        {% else %}
+                            <img src="/path/to/default/image.jpg" width="70" height="70">
+                        {% endif %}
+                      </a>
+                    </td>
+                    <td>{{ attendee.surname }} {{ attendee.firstname }} {{ attendee.patronymic }}</td>
+                    <td>{{ attendee.iin }}</td>
+                    <td>{{ attendee.birth_date }}</td>
+                    <td>{{ attendee.post }}</td>
+                    <td>{{ attendee.visit_object }}</td>
+                    <td>
+                      <a href="/api/client/attendee/update/attendee_{{ attendee.id }}">
+                          <img src="{{ url_for('static', path='/img/update.svg') }}" width="30" height="30">
+                      </a>
+                      <a href="#" onclick="deleteAttendee('{{ attendee.id }}')">
+                          <img src="{{ url_for('static', path='/img/remove.svg') }}" width="30" height="30">
+                      </a>
+                    </td>
+                  </tr>
+                </tbody>
+                {% endfor %}
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+    function deleteAttendee(attendeeId) {
+        if (confirm('Вы уверены, что хотите удалить этого участника?')) {
+            fetch('/api/client/attendee/delete/attendee_' + attendeeId, {
+                method: 'DELETE'
+            }).then(response => {
+                if (response.ok) {
+                    // Обновление страницы или другие действия после успешного удаления
+                    location.reload();
+                } else {
+                    alert('Ошибка при удалении участника');
+                }
+            });
+        }
+    }
+</script>
+
+{% endblock %}

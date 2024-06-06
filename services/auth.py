@@ -47,6 +47,7 @@ class AuthService:
             workplace=form.workplace,
             phone_number=form.phone_number,
             iin=form.iin,
+            admin=form.admin,
             password=hash_password(form.password),
         )
         print(user_obj_in, "user_obj_in")

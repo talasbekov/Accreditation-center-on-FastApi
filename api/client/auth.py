@@ -34,6 +34,7 @@ async def login(
         auth = auth_service.login(form, db, Authorize)
         try:
             Authorize.set_access_cookies(auth["access_token"])
+            print(auth['access_token'], "token")
         except Exception as e:
             print(e)
         # Установка токенов в куки для использования в последующих запросах
@@ -77,23 +78,24 @@ async def create(
     *,
     db: Session = Depends(get_db),
     request: Request,
-    Authorize: AuthJWT = Depends(),
     name: str = Form(...),
     email: EmailStr = Form(...),
     workplace: str = Form(...),
     iin: int = Form(...),
     phone_number: str = Form(...),
+    admin: str = Form(...),
     password: str = Form(),
-    re_password: str = Form()
+    re_password: str = Form(),
+    Authorize: AuthJWT = Depends(),
 ):
     Authorize.jwt_required()
-    user_email = Authorize.get_raw_jwt()["email"]
     form = RegistrationForm(
         name=name,
         email=email,
         workplace=workplace,
         iin=iin,
         phone_number=phone_number,
+        admin=admin,
         password=password,
         re_password=re_password,
     )
@@ -102,14 +104,14 @@ async def create(
         db.add(db_obj)
         db.commit()  # Commit the transaction
         return RedirectResponse(
-            url="/api/client/users", status_code=status.HTTP_303_SEE_OTHER
+            url="/api/client/events", status_code=status.HTTP_303_SEE_OTHER
         )
     except BadRequestException as e:
         db.rollback()  # Roll back the transaction on error
         error_message = str(e)
         return configs.templates.TemplateResponse(
             "create_user.html",
-            {"request": request, "error": error_message, "user_email": user_email},
+            {"request": request, "error": error_message},
         )
 
 
@@ -126,7 +128,8 @@ def refresh_token(Authorize: AuthJWT = Depends(), db: Session = Depends(get_db))
 
 
 @router.post("/logout")
-def logout(request: Request):
+def logout(request: Request, Authorize: AuthJWT = Depends()):
+    Authorize.unset_jwt_cookies()
     response = RedirectResponse(
         url="/api/client/auth", status_code=status.HTTP_303_SEE_OTHER
     )

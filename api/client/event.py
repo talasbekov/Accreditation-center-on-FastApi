@@ -178,6 +178,7 @@ async def create(
     date_start: date = Form(...),
     date_end: date = Form(...),
     city_id: str = Form(...),
+    is_for_gov: str = Form(...),
     users: List[str] = Form(default=[]),  # Set a default empty list if None
 ):
     Authorize.jwt_required()
@@ -193,6 +194,7 @@ async def create(
         date_start=date_start,
         date_end=date_end,
         city_id=city_id,
+        is_for_gov=is_for_gov
     )
     try:
         db_obj = event_service.create(db, body)

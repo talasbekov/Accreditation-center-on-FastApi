@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request
 
 from .client import router as client_router
 
+
 router = APIRouter(prefix="/api")
 
 
@@ -11,3 +12,4 @@ async def get_ip(request: Request):
 
 
 router.include_router(client_router)
+

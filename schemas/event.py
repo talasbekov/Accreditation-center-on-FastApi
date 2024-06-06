@@ -17,6 +17,7 @@ class EventBase(NamedModel):
 
 
 class EventCreate(EventBase):
+    is_for_gov: Optional[bool]
     pass
 
 

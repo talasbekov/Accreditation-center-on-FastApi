@@ -17,6 +17,7 @@
               </div>
             </div>
             <form action="/api/client/events/create/event" method="post">
+
               <div class="row gy-3 gy-md-4 overflow-hidden">
                 <div class="col-12">
                   <label for="name" class="form-label">Название <span class="text-danger">*</span></label>
@@ -54,6 +55,13 @@
                       {% for u in users %}
                             <option value="{{ u.id }}">{{ u.name }}</option>
                       {% endfor %}
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label for="is_for_gov" class="form-label">Мероприятие только .. <span class="text-danger">*</span></label>
+                  <select class="form-control" name="is_for_gov" id="is_for_gov" required>
+                      <option value="False">Для СГО</option>
+                      <option value="True">Для СГО и ГУ</option>
                   </select>
                 </div>
                 <div class="col-12">
@@ -109,4 +117,5 @@
       </div>
     </div>
   </div>
+
 {% endblock %}

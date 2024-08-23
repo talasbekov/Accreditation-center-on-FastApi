@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 
-
 {% block content %}
 
 <!-- Table 1 - Bootstrap Brain Component -->
@@ -30,12 +29,12 @@
                 <tbody>
                   <tr>
                     <td>
-                      <a href="attendee_detail.html">
+                      <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImage('{{ url_for('media', path=attendee.photo) }}')">
                         <img src="{{ url_for('media', path=attendee.photo) }}" width="70" height="70">
                       </a>
                     </td>
                     <td>
-                      <a href="attendee_detail.html">
+                      <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImage('{{ url_for('media', path=attendee.doc_scan) if attendee.doc_scan else '' }}')">
                         {% if attendee.doc_scan %}
                             <img src="{{ url_for('media', path=attendee.doc_scan) }}" width="70" height="70">
                         {% else %}
@@ -68,6 +67,21 @@
   </div>
 </section>
 
+<!-- Modal for displaying images -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="imageModalLabel">Изображение</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="modalImage" src="" alt="Image" class="img-fluid">
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
     function deleteAttendee(attendeeId) {
         if (confirm('Вы уверены, что хотите удалить этого участника?')) {
@@ -83,5 +97,10 @@
             });
         }
     }
+
+    function showImage(imageSrc) {
+        document.getElementById('modalImage').src = imageSrc;
+    }
 </script>
+
 {% endblock %}

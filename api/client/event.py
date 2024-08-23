@@ -13,7 +13,6 @@ from schemas import (
     EventRead,
     EventUpdate,
     EventCreate,
-    EventReadWithAttendies,
     RequestRead,
 )
 from services import (
@@ -316,75 +315,75 @@ async def update_event(
             url="/api/client/events", status_code=status.HTTP_403_FORBIDDEN
         )
 
-
-@router.get(
-    "/{id}/",
-    response_model=EventRead,
-    summary="Get Event by id",
-)
-async def get_by_id(
-    *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
-):
-    """
-    Get Event by id
-
-    - **id**: UUID - required.
-    """
-    Authorize.jwt_required()
-    return event_service.get_by_id(db, str(id))
-
-
-@router.put(
-    "/{id}/",
-    response_model=EventRead,
-    summary="Update Event",
-)
-async def update(
-    *,
-    db: Session = Depends(get_db),
-    id: str,
-    body: EventUpdate,
-    Authorize: AuthJWT = Depends(),
-):
-    """
-    Update Event
-
-    """
-    Authorize.jwt_required()
-    return event_service.update(
-        db, db_obj=event_service.get_by_id(db, str(id)), obj_in=body
-    )
-
-
-@router.delete(
-    "/{id}/",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete Event",
-)
-async def delete(
-    *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
-):
-    """
-    Delete Event
-
-    - **id**: UUId - required
-    """
-    Authorize.jwt_required()
-    event_service.remove(db, str(id))
-
-
-@router.get(
-    "/with_attendees/{id}/",
-    response_model=EventReadWithAttendies,
-    summary="Get Event with Attendees",
-)
-async def get_by_id_with_attendees(
-    *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
-):
-    """
-    Get Event by id
-
-    - **id**: UUID - required.
-    """
-    Authorize.jwt_required()
-    return event_service.get_event_with_attendees(db, str(id))
+#
+# @router.get(
+#     "/{id}/",
+#     response_model=EventRead,
+#     summary="Get Event by id",
+# )
+# async def get_by_id(
+#     *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
+# ):
+#     """
+#     Get Event by id
+#
+#     - **id**: UUID - required.
+#     """
+#     Authorize.jwt_required()
+#     return event_service.get_by_id(db, str(id))
+#
+#
+# @router.put(
+#     "/{id}/",
+#     response_model=EventRead,
+#     summary="Update Event",
+# )
+# async def update(
+#     *,
+#     db: Session = Depends(get_db),
+#     id: str,
+#     body: EventUpdate,
+#     Authorize: AuthJWT = Depends(),
+# ):
+#     """
+#     Update Event
+#
+#     """
+#     Authorize.jwt_required()
+#     return event_service.update(
+#         db, db_obj=event_service.get_by_id(db, str(id)), obj_in=body
+#     )
+#
+#
+# @router.delete(
+#     "/{id}/",
+#     status_code=status.HTTP_204_NO_CONTENT,
+#     summary="Delete Event",
+# )
+# async def delete(
+#     *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
+# ):
+#     """
+#     Delete Event
+#
+#     - **id**: UUId - required
+#     """
+#     Authorize.jwt_required()
+#     event_service.remove(db, str(id))
+#
+#
+# @router.get(
+#     "/with_attendees/{id}/",
+#     response_model=EventReadWithAttendies,
+#     summary="Get Event with Attendees",
+# )
+# async def get_by_id_with_attendees(
+#     *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
+# ):
+#     """
+#     Get Event by id
+#
+#     - **id**: UUID - required.
+#     """
+#     Authorize.jwt_required()
+#     return event_service.get_event_with_attendees(db, str(id))

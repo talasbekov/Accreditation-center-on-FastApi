@@ -4,7 +4,6 @@ from typing import List
 
 from PIL import Image
 from fastapi import Depends, status, APIRouter
-from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 from core import get_db
 from exceptions import BadRequestException
@@ -36,12 +35,10 @@ async def get_all(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-    Authorize: AuthJWT = Depends(),
 ):
     """
     Get all necessary data
     """
-    Authorize.jwt_required()
     events = event_service.get_multi(db, skip, limit)
     countries = country_service.get_multi(db, skip, limit)
     doc_types = document_service.get_multi(db, skip, limit)
@@ -84,10 +81,8 @@ def is_valid_base64(data: str) -> bool:
 async def create_attendee(
     *,
     db: Session = Depends(get_db),
-    Authorize: AuthJWT = Depends(),
     body: GovAttendeeRequest,
 ):
-    Authorize.jwt_required()
 
     try:
         # Create a request for attendees

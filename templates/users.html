@@ -9,7 +9,7 @@
       <div class="col-12 col-lg-12">
         <div class="card widget-card border-light bg-light shadow-sm">
           <div class="card-body p-4">
-            <h5 class="card-title widget-card-title mb-4">Все мероприятия</h5>
+            <h5 class="card-title widget-card-title mb-4">Все пользователи</h5>
             <div class="table-responsive bg-light">
               <table class="table table-borderless bsb-table-xl text-nowrap align-middle m-0 bg-light">
                 <thead>
@@ -27,30 +27,23 @@
                 {% for u in users %}
                   <tr>
                     <td>
-                      <a href="user_detail.html">
-                        <h6 class="mb-1">#900</h6>
                         <span class="text-secondary fs-7">{{ u.name }}</span>
-                      </a>
                     </td>
                     <td>
                       <h6 class="mb-1">{{ u.email }}</h6>
                       <span class="text-secondary fs-7">Казахстан</span>
                     </td>
                     <td>
-                      <a href="/api/client/requests">
                         {{ u.iin }}
-                      </a>
                     </td>
                     <td>
-                      <a href="/api/client/attendee/all">
                         {{ u.phone_number }}
-                      </a>
                     </td>
                     <td>
                       {% if u.admin == true %}
                         Да
                       {% else %}
-                        нет
+                        Нет
                       {% endif %}
                     </td>
                     <td>{{ u.events|length }}</td>

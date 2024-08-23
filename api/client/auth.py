@@ -46,7 +46,7 @@ async def login(
             value=auth["access_token"],
             httponly=True,
             path="/",
-            secure=True,
+            secure=False,
             samesite="Lax",
         )
         response.set_cookie(
@@ -104,7 +104,7 @@ async def create(
         db.add(db_obj)
         db.commit()  # Commit the transaction
         return RedirectResponse(
-            url="/api/client/events", status_code=status.HTTP_303_SEE_OTHER
+            url="/api/client/users", status_code=status.HTTP_303_SEE_OTHER
         )
     except BadRequestException as e:
         db.rollback()  # Roll back the transaction on error

@@ -14,6 +14,10 @@ class UserService(ServiceBase[User, UserCreate, UserUpdate]):
         user = db.query(self.model).filter(User.email == email).first()
         return user
 
+    def get_by_iin(self, db: Session, iin: int):
+        user = db.query(self.model).filter(User.iin == iin).first()
+        return user
+
     def user_login_activity(user_id: str, db: Session):
         user = db.query(User).filter(User.id == user_id).first()
         if user:

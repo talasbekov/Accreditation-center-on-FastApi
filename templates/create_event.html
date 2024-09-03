@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Registration 2 - Bootstrap Brain Component -->
+<div class="bg-light py-3 py-md-5">
+
+    <div class="container">
+      <div class="row justify-content-md-center">
+        <div class="col-12 col-md-11 col-lg-8 col-xl-7 col-xxl-6">
+          <div class="bg-white p-4 p-md-5 rounded shadow-sm">
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-5">
+                  <h2 class="h3">Добавить мероприятие</h2>
+                  <h3 class="fs-6 fw-normal text-secondary m-0">Введите необходимые данные</h3>
+                </div>
+              </div>
+            </div>
+            <form action="/api/client/events/create/event" method="post">
+
+              <div class="row gy-3 gy-md-4 overflow-hidden">
+                <div class="col-12">
+                  <label for="name" class="form-label">Название <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" name="name" id="name" placeholder="Возложение на Отан ана" required>
+                </div>
+                <div class="col-12">
+                  <label for="lead" class="form-label">Организатор ОМ <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" name="lead" id="lead" placeholder="Мыркымбаев А.А." required>
+                </div>
+                <div class="col-12">
+                  <label for="event_code" class="form-label">Код ОМ <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" name="event_code" id="event_code" placeholder="082546" required>
+                </div>
+                <div class="col-12">
+                  <label for="date_start" class="form-label">Дата начало ОМ <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control" name="date_start" id="date_start" placeholder="Дата начало ОМ" required>
+                </div>
+                <div class="col-12">
+                  <label for="date_end" class="form-label">Дата окончание ОМ <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control" name="date_end" id="date_end" placeholder="Дата окончание ОМ" required>
+                </div>
+                <div class="col-12">
+                  <label for="city_id" class="form-label">Город <span class="text-danger">*</span></label>
+                  <select class="form-control" name="city_id" id="city_id" required>
+                      <option value="">Выберать город</option>
+                      {% for city in cities %}
+                      <option value="{{ city.id }}">{{ city.name }}</option>
+                      {% endfor %}
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label for="users" class="form-label">Прикрепить пользователей <span class="text-danger">*</span></label>
+                  <select class="form-control" name="users" id="users" multiple>
+<!--                      <option value="">Выберите пользователей</option>-->
+                      {% for u in users %}
+                            <option value="{{ u.id }}">{{ u.name }}</option>
+                      {% endfor %}
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label for="is_for_gov" class="form-label">Мероприятие только .. <span class="text-danger">*</span></label>
+                  <select class="form-control" name="is_for_gov" id="is_for_gov" required>
+                      <option value="False">Для СГО</option>
+                      <option value="True">Для СГО и ГУ</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" name="iAgree" id="iAgree" required>
+                    <label class="form-check-label text-secondary" for="iAgree">
+                      Я согласен с обработкой моих персональных данных
+                    </label>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="d-grid">
+                    <button class="btn btn-lg btn-primary" type="submit">Добавить</button>
+                  </div>
+                </div>
+              </div>
+            </form> 
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

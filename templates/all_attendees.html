@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Table 1 - Bootstrap Brain Component -->
+<section class="py-3 py-md-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-12">
+        <div class="card widget-card border-light bg-light shadow-sm">
+          <div class="card-body p-4">
+            <h5 class="card-title widget-card-title mb-4">Участники одной заявки</h5>
+            <p>56 участников</p>
+            <div class="table-responsive bg-light">
+              <table class="table table-borderless bsb-table-xl text-nowrap align-middle m-0 bg-light">
+                <thead>
+                  <tr>
+                    <th>Фото</th>
+                    <th>Документ</th>
+                    <th>ФИО</th>
+                    <th>ИИН</th>
+                    <th>Гражданство</th>
+                    <th>Место работы</th>
+                    <th>Обьект</th>
+                    <th>Действие</th>
+                  </tr>
+                </thead>
+                {% for attendee in attendees %}
+                <tbody>
+                  <tr>
+                    <td>
+                      <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImage('{{ url_for('media', path=attendee.photo) if attendee.photo else '/path/to/default/image.jpg' }}')">
+                        <img src="{{ url_for('media', path=attendee.photo) if attendee.photo else '/path/to/default/image.jpg' }}" width="70" height="70">
+                      </a>
+                    </td>
+                    <td>
+                      <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImage('{{ url_for('media', path=attendee.doc_scan) if attendee.doc_scan else '/path/to/default/image.jpg' }}')">
+                        <img src="{{ url_for('media', path=attendee.doc_scan) if attendee.doc_scan else '/path/to/default/image.jpg' }}" width="70" height="70">
+                      </a>
+                    </td>
+                    <td>{{ attendee.surname }} {{ attendee.firstname }} {{ attendee.patronymic }}</td>
+                    <td>{{ attendee.iin }}</td>
+                    <td>{{ attendee.birth_date }}</td>
+                    <td>{{ attendee.post }}</td>
+                    <td>{{ attendee.visit_object }}</td>
+                    <td>
+                      <a href="/api/client/attendee/update/attendee_{{ attendee.id }}">
+                          <img src="{{ url_for('static', path='/img/update.svg') }}" width="30" height="30">
+                      </a>
+                      <a href="#" onclick="deleteAttendee('{{ attendee.id }}')">
+                          <img src="{{ url_for('static', path='/img/remove.svg') }}" width="30" height="30">
+                      </a>
+                    </td>
+                  </tr>
+                </tbody>
+                {% endfor %}
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal for displaying images -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="imageModalLabel">Изображение</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="modalImage" src="" alt="Image" class="img-fluid">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    function deleteAttendee(attendeeId) {
+        if (confirm('Вы уверены, что хотите удалить этого участника?')) {
+            fetch('/api/client/attendee/delete/attendee_' + attendeeId, {
+                method: 'DELETE'
+            }).then(response => {
+                if (response.ok) {
+                    // Обновление страницы или другие действия после успешного удаления
+                    location.reload();
+                } else {
+                    alert('Ошибка при удалении участника');
+                }
+            });
+        }
+    }
+
+    function showImage(imageSrc) {
+        document.getElementById('modalImage').src = imageSrc;
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<!-- Table 1 - Bootstrap Brain Component -->
+<section class="py-3 py-md-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-12">
+        <div class="card widget-card border-light bg-light shadow-sm">
+          <div class="card-body p-4">
+            <h5 class="card-title widget-card-title mb-4">Все пользователи</h5>
+            <div class="table-responsive bg-light">
+              <table class="table table-borderless bsb-table-xl text-nowrap align-middle m-0 bg-light">
+                <thead>
+                  <tr>
+                    <th>Название</th>
+                    <th>Почта</th>
+                    <th>ИИН</th>
+                    <th>Номер телефона</th>
+                    <th>Администратор</th>
+                    <th>ОМ</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for u in users %}
+                  <tr>
+                    <td>
+                        <span class="text-secondary fs-7">{{ u.name }}</span>
+                    </td>
+                    <td>
+                      <h6 class="mb-1">{{ u.email }}</h6>
+                      <span class="text-secondary fs-7">Казахстан</span>
+                    </td>
+                    <td>
+                        {{ u.iin }}
+                    </td>
+                    <td>
+                        {{ u.phone_number }}
+                    </td>
+                    <td>
+                      {% if u.admin == true %}
+                        Да
+                      {% else %}
+                        Нет
+                      {% endif %}
+                    </td>
+                    <td>{{ u.events|length }}</td>
+                    <td></td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+

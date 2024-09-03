@@ -1,5 +1,5 @@
 from typing import Optional
-from schemas import ReadNamedModel, NamedModel
+from schemas import ReadNamedModel, NamedModel, NamesModel
 
 
 class DocumentTypeBase(NamedModel):
@@ -15,4 +15,8 @@ class DocumentTypeUpdate(DocumentTypeBase):
 
 
 class DocumentTypeRead(DocumentTypeBase, ReadNamedModel):
+    pass
+
+
+class GovDocumentTypeRead(NamesModel):
     pass

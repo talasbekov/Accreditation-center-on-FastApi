@@ -36,19 +36,20 @@ async def get_all(
     return user_service.get_multi(db, skip, limit)
 
 
-@router.post("", status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(HTTPBearer())],
-             response_model=UserRead,
-             summary="Create User")
-async def create(*,
-                 db: Session = Depends(get_db),
-                 body: UserCreate,
-                 Authorize: AuthJWT = Depends()
-                 ):
+@router.post(
+    "",
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(HTTPBearer())],
+    response_model=UserRead,
+    summary="Create User",
+)
+async def create(
+    *, db: Session = Depends(get_db), body: UserCreate, Authorize: AuthJWT = Depends()
+):
     """
-        Create User
+    Create User
 
-        - **name**: required
+    - **name**: required
     """
     Authorize.jwt_required()
     return user_service.create(db, body)

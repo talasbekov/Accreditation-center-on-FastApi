@@ -18,18 +18,13 @@ def verify_password(password: str, hashed_password: str):
     return pwd_context.verify(password, hashed_password)
 
 
-def get_access_token_by_user_id(Authorize: AuthJWT,
-                                       db: Session,
-                                       user_id: str):
+def get_access_token_by_user_id(Authorize: AuthJWT, db: Session, user_id: str):
 
     user = user_service.get_by_id(db, user_id)
-    user_claims = {
-        "role": bool(user.admin),
-        "iin": str(user.iin)
-    }
+    user_claims = {"role": bool(user.admin), "iin": str(user.iin)}
     access_token = Authorize.create_access_token(
         subject=str(user.id),
         user_claims=user_claims,
-        expires_time=timedelta(minutes=configs.ACCESS_TOKEN_EXPIRES_IN)
+        expires_time=timedelta(minutes=configs.ACCESS_TOKEN_EXPIRES_IN),
     )
     return access_token

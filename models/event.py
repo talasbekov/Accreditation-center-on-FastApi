@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Date, ForeignKey, Integer
+from sqlalchemy import Column, String, Date, ForeignKey, Boolean, Integer
 from sqlalchemy.orm import relationship
 
 from models import NamedModel
@@ -13,6 +13,8 @@ class Event(NamedModel):
     date_start = Column(Date)
     date_end = Column(Date)
     city_id = Column(String(), ForeignKey("cities.id"), nullable=True)
+    lead = Column(String(length=30))
+    is_for_gov = Column(Boolean, default=False)
 
     cities = relationship("City", back_populates="events")
     requests = relationship("Request", back_populates="events")

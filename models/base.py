@@ -1,7 +1,6 @@
-import uuid
 import datetime
 
-from sqlalchemy import TIMESTAMP, Column, String, text, CLOB
+from sqlalchemy import TIMESTAMP, Column, String, text, CLOB, Integer
 from sqlalchemy.sql.sqltypes import Boolean
 from abc import abstractmethod
 
@@ -29,7 +28,7 @@ class Cloneable:
                 setattr(new_obj, c.name, getattr(self, c.name))
 
         new_obj.__dict__.update(attr)
-        new_obj.id = str(uuid.uuid4())
+        new_obj.id = Integer
         new_obj.created_at = datetime.datetime.now()
         new_obj.updated_at = datetime.datetime.now()
 
@@ -39,10 +38,7 @@ class Cloneable:
 class Model(Base, Cloneable):
     __abstract__ = True
 
-    id = Column(
-        String(), primary_key=True, nullable=False, default=lambda: str(uuid.uuid4())
-    )
-
+    id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     created_at = Column(
         TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
     )

@@ -6,7 +6,6 @@ from models import NamedModel
 from models.association import user_event_association
 
 
-# Определите ваши модели здесь
 class User(NamedModel):
     __tablename__ = "users"
 

@@ -153,3 +153,10 @@ async def delete(
     """
     Authorize.jwt_required()
     attendee_service.remove(db, str(id))
+
+
+@router.post("/reload/", dependencies=[Depends(HTTPBearer())], summary="Reload Attendees")
+async def reload(db: Session = Depends(get_db), Authorize:
+AuthJWT = Depends()):
+    Authorize.jwt_required()
+    return await attendee_service.reload(db)

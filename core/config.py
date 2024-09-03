@@ -27,6 +27,9 @@ class Settings(BaseSettings):
 
     SENTRY_ENABLED: bool = False
 
+
+    SERVICE_PASSWORD: str
+
     class Config:
         extra = Extra.allow
         env_file = ".env"

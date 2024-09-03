@@ -13,7 +13,7 @@ class Attendee(Model):
     birth_date = Column(Date, nullable=True)
     post = Column(String(1024))
     doc_series = Column(String(128))
-    iin = Column(String(12), index=True)
+    iin = Column(String(12), index=True, nullable=True)
     doc_number = Column(String(20))
     doc_begin = Column(Date, nullable=True)
     doc_end = Column(Date, nullable=True)

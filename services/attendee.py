@@ -98,38 +98,40 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
     async def reload(self, db: Session):
         token = await self._get_token()
         url_pages = f"https://accreditation.wng.kz:8444/api/wng/sgo/visitors/pages?token={token}"
-        count = requests.get(url_pages).text
-        count = int(count)
+        count = requests.get(url_pages).text 
+        count = int(float(count))
         for i in range(1, count + 1):
             url = f"https://accreditation.wng.kz:8444/api/wng/sgo/visitors?token={token}&page={i}"
             response = requests.get(url)
             data = response.json()
             for item in data:
+                for key, value in item.items():
+                    if isinstance(value, int):
+                        item[key] = str(value)
                 item = {
-                        "surname": item["surname"],
-                        "firstname": item["firstname"],
-                        "patronymic": item["patronymic"],
-                        "birth_date": datetime.strptime(item["birthDate"], "%d.%m.%Y").date() if item["birthDate"] else None,
-                        "post": item["post"],
-                        "doc_series": item["docSeries"],
-                        "iin": item["iin"],
-                        "doc_number": item["docNumber"],
-                        "doc_begin": datetime.strptime(item["docBegin"], "%Y-%m-%d").date() if item["docBegin"] else None,
-                        "doc_end": datetime.strptime(item["docEnd"], "%Y-%m-%d").date() if item["docEnd"] else None,
-                        "doc_issue": item["docIssue"],
-                        "photo": item["photo"],  # Assuming no photo path provided
-                        "doc_scan": item["docScan"],
-                        "visit_object": item["visitObjects"],
-                        "transcription": item["transcription"],
-                        "sex_id": item["sexId"],
-                        "country_id": item["countryId"],
-                        "request_id": item["request"],
-                        "doc_type_id": item["docTypeId"],
-                        "created_at": item["dateAdd"],
-                        "id": item["id"],
-                    }
-                attendee = db.query(Attendee).filter(
-                    Attendee.id == item["id"]).first()
+                    "surname": item["surname"],
+                    "firstname": item["firstname"],
+                    "patronymic": item["patronymic"],
+                    "birth_date": datetime.strptime(item["birthDate"], "%d.%m.%Y").date() if item["birthDate"] else None,
+                    "post": item["post"],
+                    "doc_series": item["docSeries"],
+                    "iin": item["iin"],
+                    "doc_number": str(item["docNumber"]),
+                    "doc_begin": datetime.strptime(item["docBegin"], "%Y-%m-%d").date() if item["docBegin"] else None,
+                    "doc_end": datetime.strptime(item["docEnd"], "%Y-%m-%d").date() if item["docEnd"] else None,
+                    "doc_issue": item["docIssue"],
+                    "photo": "",  # Assuming no photo path provided
+                    "doc_scan": item["docScan"],
+                    "visit_object": item["visitObjects"],
+                    "transcription": item["transcription"],
+                    "sex_id": item["sexId"],
+                    "country_id": item["countryId"],
+                    "request_id": item["request"],
+                    "doc_type_id": item["docTypeId"],
+                    "created_at": item["dateAdd"],
+                    "id": str(item["id"]),
+                }
+                attendee = db.query(Attendee).filter(Attendee.id == str(item["id"])).first()
                 if not attendee:
                     attendee = Attendee(**item)
                     db.add(attendee)
@@ -139,6 +141,5 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
                     db.commit()
         db.commit()
         return count
-
 
 attendee_service = AttendeeService(Attendee)

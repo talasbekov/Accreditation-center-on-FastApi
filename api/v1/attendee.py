@@ -13,7 +13,7 @@ from schemas import AttendeeRead, AttendeeUpdate, AttendeeCreate
 from services import attendee_service
 
 router = APIRouter(
-    prefix="/attendee", tags=["Attendees"], dependencies=[Depends(HTTPBearer())]
+    prefix="/attendee", tags=["Attendees"]
 )
 
 
@@ -155,8 +155,6 @@ async def delete(
     attendee_service.remove(db, str(id))
 
 
-@router.post("/reload/", dependencies=[Depends(HTTPBearer())], summary="Reload Attendees")
-async def reload(db: Session = Depends(get_db), Authorize:
-AuthJWT = Depends()):
-    Authorize.jwt_required()
+@router.post("/reload/", summary="Reload Attendees")
+async def reload(db: Session = Depends(get_db)): 
     return await attendee_service.reload(db)

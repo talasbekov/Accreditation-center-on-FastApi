@@ -21,6 +21,7 @@ from services import (
     country_service,
     document_service,
 )
+from utils import is_valid_base64, correct_base64_padding
 
 router = APIRouter(prefix="/gov", tags=["GovAttendees"])
 
@@ -50,26 +51,6 @@ async def get_all(
         attendees.append(attendee)
 
     return attendees
-
-
-def correct_base64_padding(data: str) -> str:
-    """Add padding to Base64 string if necessary."""
-    # Remove existing padding
-    data = data.rstrip("=")
-    # Calculate necessary padding
-    padding_needed = -len(data) % 4
-    return data + "=" * padding_needed
-
-
-def is_valid_base64(data: str) -> bool:
-    """Check if a string is a valid base64 encoded string."""
-    try:
-        if isinstance(data, str):
-            base64.b64decode(data, validate=True)
-            return True
-    except base64.binascii.Error:
-        return False
-    return False
 
 
 @router.post(

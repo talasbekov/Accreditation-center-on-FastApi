@@ -395,3 +395,26 @@ async def remove_attendee(
                 "request": request,
             },
         )
+
+
+@router.post("/reload/", summary="Reload Attendees")
+async def reload(request: Request,
+                 db: Session = Depends(get_db),
+                 skip: int = 0,
+                 limit: int = 100,
+                 Authorize: AuthJWT = Depends(),
+                 ):
+    Authorize.jwt_required()
+    user_id = Authorize.get_jwt_subject()
+    user = user_service.get_by_id(db, user_id)
+    print(user_id)
+    print(user)
+    # Вызов сервиса для перезагрузки данных
+    attendees_count = await attendee_service.reload(db)
+    attendees = attendee_service.get_multi(db, skip, limit)
+    # Возврат HTML-шаблона с данными
+    return configs.templates.TemplateResponse(
+        "all_attendees.html", {
+        "request": request, "attendees": attendees, "attendees_count": attendees_count, "user": user
+        }
+    )

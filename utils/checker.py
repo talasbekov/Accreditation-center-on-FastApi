@@ -1,3 +1,4 @@
+import base64
 import datetime
 
 import re
@@ -28,3 +29,22 @@ def is_valid_uuid(uuid_str):
 
 def convert_str_to_datetime(date: str):
     return datetime.datetime.strptime(date, "%Y-%m-%d")
+
+def correct_base64_padding(data: str) -> str:
+    """Add padding to Base64 string if necessary."""
+    # Remove existing padding
+    data = data.rstrip("=")
+    # Calculate necessary padding
+    padding_needed = -len(data) % 4
+    return data + "=" * padding_needed
+
+
+def is_valid_base64(data: str) -> bool:
+    """Check if a string is a valid base64 encoded string."""
+    try:
+        if isinstance(data, str):
+            base64.b64decode(data, validate=True)
+            return True
+    except base64.binascii.Error:
+        return False
+    return False

@@ -65,6 +65,10 @@ class GovAttendeeCreate(Model):
     doc_scan: str
 
 
+class GovAttendee(Model):
+    id: int
+
+
 class GovAttendeeRequest(Model):
     event_id: int
     attendees: List[GovAttendeeCreate]

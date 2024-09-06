@@ -4,6 +4,7 @@ from .attendee import (
     AttendeeCreate,
     AttendeeUpdate,
     AttendeeRead,
+    GovAttendee,
     GovAttendeeCreate,
     GovAttendeeRequest,
 )

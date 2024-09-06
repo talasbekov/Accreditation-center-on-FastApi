@@ -1,13 +1,17 @@
 import base64
 import io
+import json
+
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Type, Union, Dict, Any
 
+import aiohttp
 from fastapi import UploadFile, HTTPException
 from fastapi.encoders import jsonable_encoder
 from PIL import Image
 from io import BytesIO
+import fitz  # PyMuPDF
 
 import aiofiles
 import hashlib
@@ -18,6 +22,7 @@ from models import Attendee, Request
 from schemas import AttendeeCreate, AttendeeUpdate
 from services.base import ServiceBase
 from core.config import configs
+from utils import correct_base64_padding, is_valid_base64
 
 
 class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
@@ -187,22 +192,107 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
         return md5_hash
 
     # Функция для сохранения Base64 фото
-    def save_base64_image(self, base64_string, image_path):
+    async def save_base64_image(self, base64_string, image_path: Path, image_path_for_save: Path):
         try:
-            # Декодирование Base64
+            base64_string = correct_base64_padding(base64_string)
+            if not is_valid_base64(base64_string):
+                raise ValueError("Invalid Base64 string")
+
             image_data = base64.b64decode(base64_string)
             image = Image.open(io.BytesIO(image_data))
-            # Сохранение изображения
+
             image.save(image_path)
+            return str(image_path_for_save)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Cannot decode or save image: {str(e)}")
 
-    # Загрузка список всех участников с сервера АЦ Игр Кочевников
+    # Функция для сохранения PDF как JPG
+    async def save_pdf_as_jpg(self, base64_string: str, image_path: Path, image_path_for_save: Path):
+        try:
+            if not base64_string:
+                print("Base64 строка для PDF отсутствует или пуста")
+                return None
+
+            pdf_data = base64.b64decode(base64_string)
+            pdf_document = fitz.open(stream=pdf_data, filetype="pdf")
+
+            if not pdf_document.page_count:
+                print("Предоставленный PDF пуст.")
+                return None
+
+            image_filenames = []
+            for i in range(pdf_document.page_count):
+                page = pdf_document.load_page(i)
+                pix = page.get_pixmap()
+                img = Image.open(io.BytesIO(pix.tobytes()))
+
+                image_filename = image_path.with_name(f"{image_path_for_save.stem}_{i + 1}.jpg")
+                async with aiofiles.open(image_filename, "wb") as f:
+                    img_byte_arr = io.BytesIO()
+                    img.save(img_byte_arr, format='JPEG')
+                    await f.write(img_byte_arr.getvalue())
+
+                # Преобразуем путь, удаляя 'media/' из начала
+                image_filenames.append(str(image_filename)[len('media/'):])
+
+            # Если список содержит только один элемент, возвращаем строку
+            if len(image_filenames) == 1:
+                return image_filenames[0]
+
+            return image_filenames
+
+        except Exception as e:
+            print(f"Не удалось декодировать PDF или конвертировать в JPG: {str(e)}")
+            return None
+
+    # Загрузка списка всех участников с сервера АЦ Игр Кочевников
+    async def reload_doc_scan(self, extern_id: str, doc_name: str, token: str):
+        url = f"https://accreditation.wng.kz:8444/api/wng/sgo/visitors/doc?externId={extern_id}&docName={doc_name}&token={token}"
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                if response.status == 200:
+                    content_type = response.headers.get('Content-Type')
+                    print(f"Content-Type: {content_type}")
+
+                    base64_data = await response.text()
+                    if not base64_data.strip():
+                        raise ValueError(f"Пустой ответ для документа {doc_name}")
+
+                    if "application/json" in content_type:
+                        doc_filename = f"{extern_id}_{doc_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
+                        doc_path = Path(f"media/event_1/attendee_documents/{doc_filename}")
+                        doc_path.parent.mkdir(parents=True, exist_ok=True)
+                        doc_path_for_save = Path(f"event_1/attendee_documents/{doc_filename}")
+                        saved_paths = await self.save_pdf_as_jpg(base64_data, doc_path, doc_path_for_save)
+                        return saved_paths
+
+                    if "application/pdf" in content_type:
+                        doc_filename = f"{extern_id}_{doc_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
+                        doc_path = Path(f"media/event_1/attendee_documents/{doc_filename}")
+                        doc_path.parent.mkdir(parents=True, exist_ok=True)
+                        # doc_path_for_save = Path(f"event_1/attendee_documents/{doc_filename}")
+                        saved_paths = await self.save_pdf_as_jpg(base64_data, doc_path)
+                        return saved_paths
+
+                    elif "image/gif" in content_type or "image/jpeg" in content_type or "image/png" in content_type:
+                        image_filename = f"{extern_id}_{doc_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
+                        image_path = Path(f"media/event_1/attendee_documents/{image_filename}")
+                        image_path.parent.mkdir(parents=True, exist_ok=True)
+                        # image_path_for_save = Path(f"event_1/attendee_documents/{image_filename}")
+                        saved_image_path = await self.save_pdf_as_jpg(base64_data, image_path)
+                        return saved_image_path
+
+                    else:
+                        raise ValueError(f"Некорректный тип содержимого для документа {doc_name}: {content_type}")
+                else:
+                    raise ValueError(f"Не удалось получить документ {doc_name}. Статус: {response.status}")
+
+    # Основная функция обработки данных
     async def reload(self, db: Session):
         token = await self._get_token()
         url_pages = f"https://accreditation.wng.kz:8444/api/wng/sgo/visitors/pages?token={token}"
-        count = requests.get(url_pages).text
-        count = int(float(count))
+        count = int(float(requests.get(url_pages).text))
 
         for i in range(1, count + 1):
             url = f"https://accreditation.wng.kz:8444/api/wng/sgo/visitors?token={token}&page={i}"
@@ -210,59 +300,86 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
             data = response.json()
 
             for item in data:
-                # Преобразование поля sex в числовое значение
-                sex_id = True if item["sex"] == "М" else False if item["sex"] == "Ж" else None
+                try:
+                    sex_id = True if item["sex"] == "М" else False if item["sex"] == "Ж" else None
 
-                # Проверка наличия фото
-                if item.get("photo"):
-                    # Генерация пути для сохранения изображения
-                    photo_filename = f"{item['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-                    photo_path = Path(f"media/event_1/attendee_photos/{photo_filename}")
-                    photo_path.parent.mkdir(parents=True, exist_ok=True)
-                    photo_path_for_save = Path(f"event_1/attendee_photos/{photo_filename}")
-                    # Сохранение изображения
-                    self.save_base64_image(item["photo"], photo_path)
+                    photo_paths = ""
+                    if item.get("photo"):
+                        photo_filename = f"{item['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+                        photo_path = Path(f"media/event_1/attendee_photos/{photo_filename}")
+                        photo_path.parent.mkdir(parents=True, exist_ok=True)
+                        photo_path_for_save = Path(f"event_1/attendee_photos/{photo_filename}")
+                        photo_paths = await self.save_base64_image(item["photo"], photo_path, photo_path_for_save)
 
-                # Создание записи для базы данных
-                item_data = {
-                    "surname": item["surname"],
-                    "firstname": item["firstname"],
-                    "patronymic": item["patronymic"],
-                    "birth_date": datetime.strptime(item["birthDate"], "%d.%m.%Y").date() if item[
-                        "birthDate"] else None,
-                    "post": item["post"],
-                    "doc_series": item["docSeries"],
-                    "iin": item["iin"],
-                    "doc_number": str(item["docNumber"]),
-                    "doc_begin": datetime.strptime(item["docBegin"], "%Y-%m-%d").date() if item["docBegin"] else None,
-                    "doc_end": datetime.strptime(item["docEnd"], "%Y-%m-%d").date() if item["docEnd"] else None,
-                    "doc_issue": item["docIssue"],
-                    "photo": str(photo_path_for_save) if item.get("photo") else "",  # Сохраняем путь к фото
-                    "doc_scan": "",
-                    "visit_object": item["visitObjects"],
-                    "transcription": item["transcription"],
-                    "sex": sex_id,
-                    "country_id": 1,  # Можно изменить в зависимости от значений
-                    "request_id": 1,
-                    "doc_type_id": 1,
-                    "id": int(item["id"]),
-                }
+                    doc_scan_files = item.get("docScan", "").split(", ")
+                    doc_scans = []
+                    extern_id = str(item["id"])[5:]
 
-                # Проверка на существование записи
-                attendee = db.query(Attendee).filter(Attendee.id == str(item["id"])).first()
+                    for doc_name in doc_scan_files:
+                        try:
+                            doc_scan_base64 = await self.reload_doc_scan(extern_id, doc_name, token)
+                            if doc_scan_base64:
+                                doc_scans.append(doc_scan_base64)
+                        except ValueError as e:
+                            print(f"Ошибка при получении документа {doc_name}: {str(e)}")
 
-                if not attendee:
-                    # Создание новой записи
-                    attendee = Attendee(**item_data)
-                    db.add(attendee)
-                else:
-                    # Обновление существующей записи
-                    for key, value in item_data.items():
-                        setattr(attendee, key, value)
-                    db.commit()
-            db.commit()
+                    # Преобразование doc_scan: если одна запись, сохраняем как строку, иначе как список JSON
+                    if len(doc_scans) == 1:
+                        doc_scan_json = doc_scans[0]  # Сохраняем одну запись как строку
+                    elif doc_scans:
+                        doc_scan_json = json.dumps(doc_scans)  # Сохраняем список как JSON
+                    else:
+                        doc_scan_json = None  # Если пусто, присваиваем None
+
+                    item_data = {
+                        "surname": item["surname"],
+                        "firstname": item["firstname"],
+                        "patronymic": item["patronymic"],
+                        "birth_date": datetime.strptime(item["birthDate"], "%d.%m.%Y").date() if item[
+                            "birthDate"] else None,
+                        "post": item["post"],
+                        "doc_series": item["docSeries"][:12] if item["docSeries"] else None,
+                        "iin": item["iin"][:12] if item["iin"] else None,
+                        "doc_number": str(item["docNumber"]),
+                        "doc_begin": datetime.strptime(item["docBegin"], "%Y-%m-%d").date() if item["docBegin"] else None,
+                        "doc_end": datetime.strptime(item["docEnd"], "%Y-%m-%d").date() if item["docEnd"] else None,
+                        "doc_issue": item["docIssue"],
+                        "photo": photo_paths if item.get("photo") else "",
+                        "doc_scan": doc_scan_json,
+                        "visit_object": item["visitObjects"],
+                        "transcription": item["transcription"],
+                        "sex": sex_id,
+                        "country_id": 1,
+                        "request_id": 1,
+                        "doc_type_id": 1,
+                        "id": int(item["id"]),
+                    }
+
+                    try:
+                        # Поиск существующего участника
+                        attendee = db.query(Attendee).filter(Attendee.id == item["id"]).first()
+
+                        if not attendee:
+                            # Создание новой записи
+                            attendee = Attendee(**item_data)
+                            db.add(attendee)
+                        else:
+                            # Обновление существующей записи
+                            for key, value in item_data.items():
+                                setattr(attendee, key, value)
+
+                        # Применение изменений для текущей записи
+                        db.commit()
+
+                    except Exception as e:
+                        print(f"Ошибка при сохранении записи {item['id']}: {str(e)}")
+                        db.rollback()  # Откат транзакции для конкретной записи
+
+                except Exception as e:
+                    # Логирование ошибки для текущего участника
+                    print(f"Ошибка при обработке записи {item['id']}: {str(e)}")
+
         return count
-
 
     # async def reload(self, db: Session):
     #     token = await self._get_token()
@@ -276,48 +393,26 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
     #         data = response.json()
     #
     #         for item in data:
-    #             # Проверяем значение пола и устанавливаем соответствующее значение в поле sex_id
-    #             sex_id = 1 if item["sex"] == "М" else 2 if item["sex"] == "Ж" else None
+    #             # Преобразование поля sex в числовое значение
+    #             sex_id = True if item["sex"] == "М" else False if item["sex"] == "Ж" else None
+    #             # print(item)
+    #             # Проверка наличия фото
+    #             if item.get("photo"):
+    #                 # Генерация пути для сохранения изображения
+    #                 photo_filename = f"{item['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+    #                 photo_path = Path(f"media/event_1/attendee_photos/{photo_filename}")
+    #                 photo_path.parent.mkdir(parents=True, exist_ok=True)
+    #                 photo_path_for_save = Path(f"event_1/attendee_photos/{photo_filename}")
+    #                 # Сохранение изображения
+    #                 self.save_base64_image(item["photo"], photo_path)
     #
-    #             # Correct base64 padding and validate
-    #             photo_data_str = correct_base64_padding(item.photo)
-    #             doc_scan_data_str = correct_base64_padding(item.doc_scan)
-    #             print(photo_data_str)
-    #
-    #             if not is_valid_base64(photo_data_str):
-    #                 raise BadRequestException(detail="Invalid base64 data for photo")
-    #             if not is_valid_base64(doc_scan_data_str):
-    #                 raise BadRequestException(
-    #                     detail="Invalid base64 data for document scan"
-    #                 )
-    #
-    #             try:
-    #                 # Decode base64 photo and document scan
-    #                 photo_data = base64.b64decode(photo_data_str)
-    #                 doc_scan_data = base64.b64decode(doc_scan_data_str)
-    #             except base64.binascii.Error:
-    #                 raise BadRequestException(detail="Error decoding base64 data")
-    #
-    #             try:
-    #                 # Convert the decoded data to PIL images
-    #                 photo_image = Image.open(io.BytesIO(photo_data))
-    #                 doc_scan_image = Image.open(io.BytesIO(doc_scan_data))
-    #             except IOError as e:
-    #                 raise BadRequestException(detail=f"Cannot identify image file: {e}")
-    #
-    #             # Save the images to appropriate locations or services
-    #             await attendee_service.upload_photo_base64(db, item.id, photo_image)
-    #             await attendee_service.upload_doc_scan_base64(db, item.id, doc_scan_image)
-    #
-    #             for key, value in item.items():
-    #                 if isinstance(value, int):
-    #                     item[key] = str(value)
-    #
-    #             item = {
+    #             # Создание записи для базы данных
+    #             item_data = {
     #                 "surname": item["surname"],
     #                 "firstname": item["firstname"],
     #                 "patronymic": item["patronymic"],
-    #                 "birth_date": datetime.strptime(item["birthDate"], "%d.%m.%Y").date() if item["birthDate"] else None,
+    #                 "birth_date": datetime.strptime(item["birthDate"], "%d.%m.%Y").date() if item[
+    #                     "birthDate"] else None,
     #                 "post": item["post"],
     #                 "doc_series": item["docSeries"],
     #                 "iin": item["iin"],
@@ -325,26 +420,41 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
     #                 "doc_begin": datetime.strptime(item["docBegin"], "%Y-%m-%d").date() if item["docBegin"] else None,
     #                 "doc_end": datetime.strptime(item["docEnd"], "%Y-%m-%d").date() if item["docEnd"] else None,
     #                 "doc_issue": item["docIssue"],
-    #                 "photo": "",  # Assuming no photo path provided
-    #                 "doc_scan": item["docScan"],
+    #                 "photo": str(photo_path_for_save) if item.get("photo") else "",  # Сохраняем путь к фото
+    #                 "doc_scan": await self.reload_doc_scan(int(item["id"])[5:], name for i in item["docScan"]),
     #                 "visit_object": item["visitObjects"],
     #                 "transcription": item["transcription"],
-    #                 "sex_id": sex_id,
-    #                 "country_id": 1,
+    #                 "sex": sex_id,
+    #                 "country_id": 1,  # Можно изменить в зависимости от значений
     #                 "request_id": 1,
     #                 "doc_type_id": 1,
-    #                 "id": str(item["id"]),
+    #                 "id": int(item["id"]),
     #             }
+    #
+    #             # Проверка на существование записи
     #             attendee = db.query(Attendee).filter(Attendee.id == str(item["id"])).first()
+    #             att = await self.reload_doc_scan(attendee.id)
+    #             print(att, 'qqq')
     #
     #             if not attendee:
-    #                 attendee = Attendee(**item)
+    #                 # Создание новой записи
+    #                 attendee = Attendee(**item_data)
     #                 db.add(attendee)
     #             else:
-    #                 for key, value in item.items():
+    #                 # Обновление существующей записи
+    #                 for key, value in item_data.items():
     #                     setattr(attendee, key, value)
     #                 db.commit()
-    #     db.commit()
+    #         db.commit()
     #     return count
+    #
+    # # Загрузка список всех участников с сервера АЦ Игр Кочевников
+    # async def reload_doc_scan(self, attendee_id: int):
+    #     token = await self._get_token()
+    #     url_pages = f"https://accreditation.wng.kz:8444/api/wng/sgo/visitors/doc?externId={attendee_id[5:]}&docName={docScan}&token={token}"
+    #     return url_pages
+
+
+
 
 attendee_service = AttendeeService(Attendee)

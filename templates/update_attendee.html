@@ -79,13 +79,14 @@
                                 <label for="post" class="form-label">Должность<span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="post" id="post" placeholder="РукАП" value="{{ attendee.post }}" required>
                             </div>
-                            <div class="col-12 col-md-3">
-                              <label for="sex_id" class="form-label">Пол <span class="text-danger">*</span></label>
-                              <select class="form-control" name="sex_id" id="sex_id" required>
-                                  <option value="{{ attendee.sexes.id }}">{{ attendee.sexes.name }}</option>
-                                  {% for sex in sexes %}
-                                  <option value="{{ sex.id }}">{{ sex.name }}</option>
-                                  {% endfor %}
+                            <div class="col-12 col-md-6">
+                              <label for="sex" class="form-label">Пол <span class="text-danger">*</span></label>
+                              <select class="form-control" name="sex" id="sex" required>
+                                  <option value="{{ attendee.sex }}">Выбрать пол</option>
+
+                                  <option value="True">Мужской</option>
+                                  <option value="False">Женский</option>
+
                               </select>
                             </div>
                             <div class="col-12 col-md-3">

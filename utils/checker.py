@@ -31,20 +31,20 @@ def convert_str_to_datetime(date: str):
     return datetime.datetime.strptime(date, "%Y-%m-%d")
 
 def correct_base64_padding(data: str) -> str:
-    """Add padding to Base64 string if necessary."""
-    # Remove existing padding
+    """Добавить padding к строке Base64, если это необходимо."""
+    # Удаляем существующий padding
     data = data.rstrip("=")
-    # Calculate necessary padding
+    # Рассчитываем необходимый padding
     padding_needed = -len(data) % 4
     return data + "=" * padding_needed
 
-
 def is_valid_base64(data: str) -> bool:
-    """Check if a string is a valid base64 encoded string."""
+    """Проверить, является ли строка допустимой base64-строкой."""
     try:
-        if isinstance(data, str):
+        # Если строка является строкой и ее длина кратна 4
+        if isinstance(data, str) and len(data) % 4 == 0:
             base64.b64decode(data, validate=True)
             return True
-    except base64.binascii.Error:
+    except (base64.binascii.Error, ValueError):
         return False
     return False

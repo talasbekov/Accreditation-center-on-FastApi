@@ -67,9 +67,9 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
             "attendees": [
                 {
                     "birthDate": (
-                        attendee.birth_date.isoformat() if attendee.birth_date else None
+                        attendee.birth_date.isoformat() if attendee.birth_date else "1992-12-12"
                     ),
-                    "countryId": attendee.country_id,
+                    "countryId": "1000000105",
                     "dateAdd": (
                         attendee.created_at.isoformat() if attendee.created_at else None
                     ),
@@ -85,21 +85,22 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
                     "docIssue": attendee.doc_issue,
                     "docNumber": attendee.doc_number,
                     "docScan": attendee.doc_scan,
-                    "docSeries": attendee.id,
-                    "docTypeId": attendee.doc_type_id,
+                    "docSeries": "1",
+                    "docTypeId": "1000000003",
                     "firstname": attendee.firstname,
-                    "id": attendee.id,
+                    "id": str(attendee.id),
                     "iin": attendee.iin,
                     "patronymic": attendee.patronymic,
                     "photo": attendee.photo,
                     "post": attendee.post,
-                    "request": attendee.request_id,
+                    "request": str(attendee.request_id),
                     "sex": (
-                        10101
+                        "10101"
                         if attendee.sex
-                        else 10000102 if attendee.sex is not None else None
+                        else "10000102" if attendee.sex is not None else None
                     ),
                     "surname": attendee.surname,
+                    "stickId": "1100000022",
                     "transcription": attendee.transcription,
                     "visitObjects": attendee.visit_object,
                 }

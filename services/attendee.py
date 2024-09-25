@@ -302,6 +302,8 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
             for item in data:
                 try:
                     sex_id = True if item["sex"] == "М" else False if item["sex"] == "Ж" else None
+                    country_id = 1 if item["country"] == "Казахстан" else 2 if  item["country"] == "Узбекистан" else 1
+                    doc_id = 1 if item["docType"] == "Документ, удостоверяющий личность " else 2 if item["docType"] == "Заграничный паспорт" else None
 
                     photo_paths = ""
                     if item.get("photo"):
@@ -336,22 +338,22 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
                         "firstname": item["firstname"],
                         "patronymic": item["patronymic"],
                         "birth_date": datetime.strptime(item["birthDate"], "%d.%m.%Y").date() if item[
-                            "birthDate"] else None,
-                        "post": item["post"],
+                            "birthDate"] else "1992-12-12",
+                        "post": item["company"],
                         "doc_series": item["docSeries"][:12] if item["docSeries"] else None,
                         "iin": item["iin"][:12] if item["iin"] else None,
                         "doc_number": str(item["docNumber"]),
-                        "doc_begin": datetime.strptime(item["docBegin"], "%Y-%m-%d").date() if item["docBegin"] else None,
-                        "doc_end": datetime.strptime(item["docEnd"], "%Y-%m-%d").date() if item["docEnd"] else None,
+                        "doc_begin": "2023-12-12",
+                        "doc_end": "2033-12-12",
                         "doc_issue": item["docIssue"],
                         "photo": photo_paths if item.get("photo") else "",
                         "doc_scan": doc_scan_json,
                         "visit_object": item["visitObjects"],
                         "transcription": item["transcription"],
                         "sex": sex_id,
-                        "country_id": 1,
+                        "country_id": country_id,
                         "request_id": 1,
-                        "doc_type_id": 1,
+                        "doc_type_id": doc_id,
                         "id": int(item["id"]),
                     }
 
@@ -380,81 +382,6 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
                     print(f"Ошибка при обработке записи {item['id']}: {str(e)}")
 
         return count
-
-    # async def reload(self, db: Session):
-    #     token = await self._get_token()
-    #     url_pages = f"https://accreditation.wng.kz:8444/api/wng/sgo/visitors/pages?token={token}"
-    #     count = requests.get(url_pages).text
-    #     count = int(float(count))
-    #
-    #     for i in range(1, count + 1):
-    #         url = f"https://accreditation.wng.kz:8444/api/wng/sgo/visitors?token={token}&page={i}"
-    #         response = requests.get(url)
-    #         data = response.json()
-    #
-    #         for item in data:
-    #             # Преобразование поля sex в числовое значение
-    #             sex_id = True if item["sex"] == "М" else False if item["sex"] == "Ж" else None
-    #             # print(item)
-    #             # Проверка наличия фото
-    #             if item.get("photo"):
-    #                 # Генерация пути для сохранения изображения
-    #                 photo_filename = f"{item['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-    #                 photo_path = Path(f"media/event_1/attendee_photos/{photo_filename}")
-    #                 photo_path.parent.mkdir(parents=True, exist_ok=True)
-    #                 photo_path_for_save = Path(f"event_1/attendee_photos/{photo_filename}")
-    #                 # Сохранение изображения
-    #                 self.save_base64_image(item["photo"], photo_path)
-    #
-    #             # Создание записи для базы данных
-    #             item_data = {
-    #                 "surname": item["surname"],
-    #                 "firstname": item["firstname"],
-    #                 "patronymic": item["patronymic"],
-    #                 "birth_date": datetime.strptime(item["birthDate"], "%d.%m.%Y").date() if item[
-    #                     "birthDate"] else None,
-    #                 "post": item["post"],
-    #                 "doc_series": item["docSeries"],
-    #                 "iin": item["iin"],
-    #                 "doc_number": str(item["docNumber"]),
-    #                 "doc_begin": datetime.strptime(item["docBegin"], "%Y-%m-%d").date() if item["docBegin"] else None,
-    #                 "doc_end": datetime.strptime(item["docEnd"], "%Y-%m-%d").date() if item["docEnd"] else None,
-    #                 "doc_issue": item["docIssue"],
-    #                 "photo": str(photo_path_for_save) if item.get("photo") else "",  # Сохраняем путь к фото
-    #                 "doc_scan": await self.reload_doc_scan(int(item["id"])[5:], name for i in item["docScan"]),
-    #                 "visit_object": item["visitObjects"],
-    #                 "transcription": item["transcription"],
-    #                 "sex": sex_id,
-    #                 "country_id": 1,  # Можно изменить в зависимости от значений
-    #                 "request_id": 1,
-    #                 "doc_type_id": 1,
-    #                 "id": int(item["id"]),
-    #             }
-    #
-    #             # Проверка на существование записи
-    #             attendee = db.query(Attendee).filter(Attendee.id == str(item["id"])).first()
-    #             att = await self.reload_doc_scan(attendee.id)
-    #             print(att, 'qqq')
-    #
-    #             if not attendee:
-    #                 # Создание новой записи
-    #                 attendee = Attendee(**item_data)
-    #                 db.add(attendee)
-    #             else:
-    #                 # Обновление существующей записи
-    #                 for key, value in item_data.items():
-    #                     setattr(attendee, key, value)
-    #                 db.commit()
-    #         db.commit()
-    #     return count
-    #
-    # # Загрузка список всех участников с сервера АЦ Игр Кочевников
-    # async def reload_doc_scan(self, attendee_id: int):
-    #     token = await self._get_token()
-    #     url_pages = f"https://accreditation.wng.kz:8444/api/wng/sgo/visitors/doc?externId={attendee_id[5:]}&docName={docScan}&token={token}"
-    #     return url_pages
-
-
 
 
 attendee_service = AttendeeService(Attendee)

@@ -37,3 +37,6 @@ from .permission import (
     PermissionRead,
 )
 from .for_government_agencies import GovAttendeeRead
+
+from .employer import EmployerBase, EmployerRead, EmployerCreate, EmployerUpdate
+from .record import RecordBase, RecordRead, RecordCreate, RecordUpdate

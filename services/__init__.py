@@ -8,3 +8,5 @@ from .request import request_service
 from .user import user_service
 from .auth import auth_service
 from .attendee import attendee_service
+from .employer import employer_service
+from .record import record_service

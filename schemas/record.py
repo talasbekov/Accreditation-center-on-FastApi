@@ -1,11 +1,11 @@
 from typing import Optional
 
-from schemas import UserRead, Model
+from schemas import EmployerRead, Model
 
 
 class RecordBase(Model):
     name: Optional[str]
-    pass
+    count_state: Optional[int]
 
 
 class RecordCreate(RecordBase):
@@ -17,4 +17,5 @@ class RecordUpdate(RecordBase):
 
 
 class RecordRead(RecordBase, Model):
-    users: Optional[list[UserRead]]
+    id: int
+    employers: Optional[list[EmployerRead]]

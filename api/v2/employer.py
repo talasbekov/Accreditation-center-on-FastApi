@@ -109,3 +109,101 @@ async def delete(
     """
 
     employer_service.remove(db, str(id))
+
+@router.get(
+    "",
+    response_model=List[EmployerRead],
+    summary="Get all Employers",
+)
+async def get_all_emp_by_state(
+    *,
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+
+):
+    """
+    Get all Employers
+    """
+
+    return employer_service.get_multi(db, skip, limit)
+
+
+@router.get("/state/count", response_model=int)
+def get_employer_count_by_state():
+    """
+    Количество сотрудников по штату всего департамента
+    """
+    return employer_service.get_count_emp_by_state()
+
+
+@router.get("/list/count", response_model=int)
+def get_employer_count_by_list(db: Session = Depends(get_db)):
+    """
+    Количество сотрудников по списку всего департамента
+    """
+    return employer_service.get_count_emp_by_list(db)
+
+
+@router.get("/vacant/count", response_model=int)
+def get_vacant_employer_count(db: Session = Depends(get_db)):
+    """
+    Количество вакантных мест в департаменте
+    """
+    return employer_service.get_count_vacant(db)
+
+
+@router.get("/status/count", response_model=int)
+def get_employer_count_by_status(status: str, db: Session = Depends(get_db)):
+    """
+    Количество сотрудников по статусу всего департамента
+    """
+    return employer_service.get_count_emp_by_status(db, status)
+
+
+@router.get("/in-service/count", response_model=int)
+def get_employer_count_in_service(db: Session = Depends(get_db)):
+    """
+    Количество сотрудников которые в строю всего департамента
+    """
+    return employer_service.get_count_emp_in_service(db)
+
+
+@router.get("/status", response_model=List[EmployerRead])
+def get_employers_by_status(status: str, db: Session = Depends(get_db)):
+    """
+    Все сотрудники по статусу, например: на больничном, и т.д.
+    """
+    return employer_service.get_emp_by_status(db, status)
+
+
+@router.get("/directorate/{record_id}/state/count", response_model=int)
+def get_directorate_employer_count_by_state(record_id: int, db: Session = Depends(get_db)):
+    """
+    Количество сотрудников по штату в управлении
+    """
+    return employer_service.get_count_emp_by_state_from_directorate(db, record_id)
+
+
+@router.get("/directorate/{record_id}/list/count", response_model=int)
+def get_directorate_employer_count_by_list(record_id: int, db: Session = Depends(get_db)):
+    """
+    Количество сотрудников по списку в управлении
+    """
+    return employer_service.get_count_emp_by_list_from_directorate(db, record_id)
+
+
+@router.get("/directorate/{record_id}/vacant/count", response_model=int)
+def get_vacant_employer_count_in_directorate(record_id: int, db: Session = Depends(get_db)):
+    """
+    Количество вакантных мест в управлении
+    """
+    return employer_service.get_count_vacant_in_directorate(db, record_id)
+
+
+@router.get("/directorate/{record_id}/status", response_model=List[EmployerRead])
+def get_employers_by_status_from_directorate(record_id: int, status: str, db: Session = Depends(get_db)):
+    """
+    Все сотрудники по статусу в управлении
+    """
+    return employer_service.get_emp_by_status_from_directorate(db, status, record_id)

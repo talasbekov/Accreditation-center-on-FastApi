@@ -28,6 +28,7 @@ def upgrade() -> None:
         'records',
         sa.Column('id', sa.Integer, primary_key=True),
         sa.Column('name', sa.String(length=128), nullable=False),
+        sa.Column('count_state', sa.Integer, nullable=False),
         sa.Column(
             'created_at', sa.DateTime, nullable=False, server_default=sa.func.now()
         ),

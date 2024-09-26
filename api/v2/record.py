@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Response
 
 from sqlalchemy.orm import Session
 
@@ -116,3 +116,18 @@ def get_employer_count_by_directorate(db: Session = Depends(get_db)):
     Расход сотрудников всего департамента
     """
     return record_service.get_count_state(db)
+
+
+# FastAPI эндпоинт для выгрузки документа
+@router.get("/download-word")
+def download_word_report(db: Session = Depends(get_db)):
+    # Получаем данные
+    recs = record_service.get_count_state(db)
+
+    # Создаем Word документ
+    word_file = record_service.create_word_report_from_template(recs)
+
+    # Отправляем документ как файл
+    return Response(content=word_file.read(),
+                    media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    headers={"Content-Disposition": "attachment; filename=report.docx"})

@@ -1,5 +1,9 @@
+import os
 from typing import Optional
 from sqlalchemy.orm import Session
+from docx import Document
+
+from io import BytesIO
 from models import (
     Record,
 )  # Предполагается, что у вас есть модель Record в models.py
@@ -79,6 +83,68 @@ class RecordService(ServiceBase[Record, RecordCreate, RecordUpdate]):
             }
             )
         return recs
+
+    def create_word_report_from_template(self, recs: list):
+        """
+        Функция для создания отчета на основе шаблона Word с подстановкой данных
+        """
+        file_path = './test.docx'
+        # Проверка на существование файла
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Файл {file_path} не найден. Пожалуйста, проверьте путь к файлу.")
+
+        # Открываем заранее подготовленный шаблон Word
+        doc = Document(file_path)
+
+        # Проходим по каждому управлению и подставляем информацию
+        for rec in recs:
+            # Ищем плейсхолдеры по ключевым словам и заменяем их на реальные данные в таблицах
+            for table in doc.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        if "{{ id }}" in cell.text:
+                            cell.text = cell.text.replace("{{ id }}", str(rec.get('id', '')))
+                        if "{{ name }}" in cell.text:
+                            cell.text = cell.text.replace("{{ name }}", rec.get('name', ''))
+                        if "{{ count_state }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_state }}", str(rec.get('count_state', 0)))
+                        if "{{ count_list }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_list }}", str(rec.get('count_list', 0)))
+                        if "{{ count_in_service }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_in_service }}", str(rec.get('count_in_service', 0)))
+                        if "{{ count_vacant }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_vacant }}", str(rec.get('count_vacant', 0)))
+                        if "{{ count_on_leave }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_on_leave }}", str(rec.get('count_on_leave', 0)))
+                        if "{{ count_business_trip }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_business_trip }}",
+                                                          str(rec.get('count_business_trip', 0)))
+                        if "{{ count_on_sick_leave }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_on_sick_leave }}",
+                                                          str(rec.get('count_on_sick_leave', 0)))
+                        if "{{ count_on_duty }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_on_duty }}", str(rec.get('count_on_duty', 0)))
+                        if "{{ count_after_on_duty }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_after_on_duty }}",
+                                                          str(rec.get('count_after_on_duty', 0)))
+                        if "{{ count_at_the_competition }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_at_the_competition }}",
+                                                          str(rec.get('count_at_the_competition', 0)))
+                        if "{{ count_seconded_in }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_seconded_in }}",
+                                                          str(rec.get('count_seconded_in', 0)))
+                        if "{{ count_seconded_out }}" in cell.text:
+                            cell.text = cell.text.replace("{{ count_seconded_out }}",
+                                                          str(rec.get('count_seconded_out', 0)))
+
+
+        # Сохраняем измененный документ во временный буфер
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+
+        # Возвращаем документ для выгрузки
+        return buffer
 
 
 record_service = RecordService(Record)

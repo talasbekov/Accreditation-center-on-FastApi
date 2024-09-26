@@ -2,7 +2,8 @@ from typing import Type
 from sqlalchemy.orm import Session
 from models import (
     Employer,
-    Record
+    Record,
+    EmpStatusEnum
 )  # Предполагается, что у вас есть модель Employer в models.py
 from schemas import (
     EmployerCreate,
@@ -22,16 +23,33 @@ class EmployerService(ServiceBase[Employer, EmployerCreate, EmployerUpdate]):
         return db.query(self.model).count()
 
     # Количество вакантных мест в департаменте
-    def get_count_vacant(self):
-        return self.get_count_emp_by_state - self.get_count_emp_by_list
+    def get_count_vacant(self, db: Session):
+        state_count = self.get_count_emp_by_state()
+        list_count = self.get_count_emp_by_list(db)
+
+        if not isinstance(state_count, int):
+            raise ValueError(f"get_count_emp_by_state() returned {type(state_count)}, expected int.")
+
+        if not isinstance(list_count, int):
+            raise ValueError(f"get_count_emp_by_list() returned {type(list_count)}, expected int.")
+
+        return state_count - list_count
 
     # Количество сотрудников по статусу всего департамента
     def get_count_emp_by_status(self, db: Session, status: str):
         return db.query(self.model).filter(self.model.status == status).count()
 
+    # Количество сотрудников по статусу всего департамента
+    def get_count_emp_by_all_status(self, db: Session):
+        statuses = []
+        for status in EmpStatusEnum:
+            emp_count_by_all_status = db.query(self.model).filter(self.model.status == status).count()
+            statuses.append(emp_count_by_all_status)
+        return sum(statuses)
+
     # Количество сотрудников которые в строю всего департамента
-    def get_count_emp_in_service(self):
-        return self.get_count_emp_by_list - self.get_count_emp_by_status
+    def get_count_emp_in_service(self, db: Session):
+        return self.get_count_emp_by_list(db) - self.get_count_emp_by_all_status(db)
 
     # Все сотрудники по статусу, например: на больничном, и т.д.
     def get_emp_by_status(self, db: Session, status: str) -> list[Type[Employer]]:
@@ -40,19 +58,35 @@ class EmployerService(ServiceBase[Employer, EmployerCreate, EmployerUpdate]):
     # Количество сотрудников по штату в управлении
     def get_count_emp_by_state_from_directorate(self, db: Session, record_id: int):
         directorate = db.query(Record).filter(Record.id == record_id).first()
-        return directorate.count_state
+        return int(directorate.count_state)
 
     # Количество сотрудников по списку в управлении
     def get_count_emp_by_list_from_directorate(self, db: Session, record_id: int):
         return db.query(self.model).filter(self.model.record_id == record_id).count()
 
-    # Количество сотрудников которые в строю в управлении
-    def get_count_emp_in_service_from_directorate(self):
-        return self.get_count_emp_by_list_from_directorate - self.get_emp_by_status_from_directorate
-
     # Количество вакантных мест в управлении
-    def get_count_vacant_in_directorate(self):
-        return self.get_count_emp_by_state_from_directorate - self.get_count_emp_by_list_from_directorate
+    def get_count_vacant_in_directorate(self, db: Session, record_id: int):
+        return self.get_count_emp_by_state_from_directorate(db, record_id) - self.get_count_emp_by_list_from_directorate(db, record_id)
+
+    # Количество сотрудников по статусу всего департамента
+    def get_count_emp_by_all_status_from_directorate(self, db: Session, record_id: int):
+        statuses = []
+        for status in EmpStatusEnum:
+            emp_count_by_all_status = db.query(self.model).filter(
+                self.model.status == status, self.model.record_id == record_id
+            ).count()
+            statuses.append(emp_count_by_all_status)
+        return sum(statuses)
+
+    # Количество сотрудников по статусу в управлении
+    def get_count_emp_by_status_from_directorate(self, db: Session, status: str, record_id: int):
+        return db.query(self.model).filter(
+            self.model.status == status, self.model.record_id == record_id
+        ).count()
+
+    # Количество сотрудников которые в строю в управлении
+    def get_count_emp_in_service_from_directorate(self, db: Session, record_id: int):
+        return self.get_count_emp_by_list_from_directorate(db, record_id) - self.get_count_emp_by_all_status_from_directorate(db, record_id)
 
     # Все сотрудники по статусу в управлении
     def get_emp_by_status_from_directorate(self, db: Session, status: str, record_id: int):

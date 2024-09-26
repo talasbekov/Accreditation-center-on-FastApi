@@ -8,5 +8,5 @@ from .permission import Permission, PermissionType, PermissionEnum
 from .event import Event
 from .request import Request
 from .user import User
-from .employer import Employer
+from .employer import Employer, EmpStatusEnum
 from .record import Record

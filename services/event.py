@@ -67,7 +67,9 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
             "attendees": [
                 {
                     "birthDate": (
-                        attendee.birth_date.isoformat() if attendee.birth_date else "1992-12-12"
+                        attendee.birth_date.isoformat()
+                        if attendee.birth_date
+                        else "1992-12-12"
                     ),
                     "countryId": "1000000105",
                     "dateAdd": (

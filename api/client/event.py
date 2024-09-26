@@ -193,7 +193,7 @@ async def create(
         date_start=date_start,
         date_end=date_end,
         city_id=city_id,
-        is_for_gov=is_for_gov
+        is_for_gov=is_for_gov,
     )
     try:
         db_obj = event_service.create(db, body)

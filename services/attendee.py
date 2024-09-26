@@ -53,8 +53,7 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
     async def upload_photo(
         self, db: Session, attendee_id: str, photo: UploadFile
     ) -> Type[Attendee]:
-        attendee = db.query(Attendee).filter(
-            Attendee.id == attendee_id).first()
+        attendee = db.query(Attendee).filter(Attendee.id == attendee_id).first()
         if not attendee.requests:
             event_number = "default"
         else:
@@ -113,8 +112,7 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
     async def upload_photo_base64(
         self, db: Session, attendee_id: str, photo: Image.Image
     ) -> Type[Attendee]:
-        attendee = db.query(Attendee).filter(
-            Attendee.id == attendee_id).first()
+        attendee = db.query(Attendee).filter(Attendee.id == attendee_id).first()
         if not attendee.requests:
             event_number = "default"
         else:
@@ -192,7 +190,9 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
         return md5_hash
 
     # Функция для сохранения Base64 фото
-    async def save_base64_image(self, base64_string, image_path: Path, image_path_for_save: Path):
+    async def save_base64_image(
+        self, base64_string, image_path: Path, image_path_for_save: Path
+    ):
         try:
             base64_string = correct_base64_padding(base64_string)
             if not is_valid_base64(base64_string):
@@ -204,10 +204,14 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
             image.save(image_path)
             return str(image_path_for_save)
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Cannot decode or save image: {str(e)}")
+            raise HTTPException(
+                status_code=400, detail=f"Cannot decode or save image: {str(e)}"
+            )
 
     # Функция для сохранения PDF как JPG
-    async def save_pdf_as_jpg(self, base64_string: str, image_path: Path, image_path_for_save: Path):
+    async def save_pdf_as_jpg(
+        self, base64_string: str, image_path: Path, image_path_for_save: Path
+    ):
         try:
             if not base64_string:
                 print("Base64 строка для PDF отсутствует или пуста")
@@ -226,14 +230,16 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
                 pix = page.get_pixmap()
                 img = Image.open(io.BytesIO(pix.tobytes()))
 
-                image_filename = image_path.with_name(f"{image_path_for_save.stem}_{i + 1}.jpg")
+                image_filename = image_path.with_name(
+                    f"{image_path_for_save.stem}_{i + 1}.jpg"
+                )
                 async with aiofiles.open(image_filename, "wb") as f:
                     img_byte_arr = io.BytesIO()
-                    img.save(img_byte_arr, format='JPEG')
+                    img.save(img_byte_arr, format="JPEG")
                     await f.write(img_byte_arr.getvalue())
 
                 # Преобразуем путь, удаляя 'media/' из начала
-                image_filenames.append(str(image_filename)[len('media/'):])
+                image_filenames.append(str(image_filename)[len("media/") :])
 
             # Если список содержит только один элемент, возвращаем строку
             if len(image_filenames) == 1:
@@ -252,7 +258,7 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as response:
                 if response.status == 200:
-                    content_type = response.headers.get('Content-Type')
+                    content_type = response.headers.get("Content-Type")
                     print(f"Content-Type: {content_type}")
 
                     base64_data = await response.text()
@@ -261,32 +267,52 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
 
                     if "application/json" in content_type:
                         doc_filename = f"{extern_id}_{doc_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
-                        doc_path = Path(f"media/event_1/attendee_documents/{doc_filename}")
+                        doc_path = Path(
+                            f"media/event_1/attendee_documents/{doc_filename}"
+                        )
                         doc_path.parent.mkdir(parents=True, exist_ok=True)
-                        doc_path_for_save = Path(f"event_1/attendee_documents/{doc_filename}")
-                        saved_paths = await self.save_pdf_as_jpg(base64_data, doc_path, doc_path_for_save)
+                        doc_path_for_save = Path(
+                            f"event_1/attendee_documents/{doc_filename}"
+                        )
+                        saved_paths = await self.save_pdf_as_jpg(
+                            base64_data, doc_path, doc_path_for_save
+                        )
                         return saved_paths
 
                     if "application/pdf" in content_type:
                         doc_filename = f"{extern_id}_{doc_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
-                        doc_path = Path(f"media/event_1/attendee_documents/{doc_filename}")
+                        doc_path = Path(
+                            f"media/event_1/attendee_documents/{doc_filename}"
+                        )
                         doc_path.parent.mkdir(parents=True, exist_ok=True)
                         # doc_path_for_save = Path(f"event_1/attendee_documents/{doc_filename}")
                         saved_paths = await self.save_pdf_as_jpg(base64_data, doc_path)
                         return saved_paths
 
-                    elif "image/gif" in content_type or "image/jpeg" in content_type or "image/png" in content_type:
+                    elif (
+                        "image/gif" in content_type
+                        or "image/jpeg" in content_type
+                        or "image/png" in content_type
+                    ):
                         image_filename = f"{extern_id}_{doc_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
-                        image_path = Path(f"media/event_1/attendee_documents/{image_filename}")
+                        image_path = Path(
+                            f"media/event_1/attendee_documents/{image_filename}"
+                        )
                         image_path.parent.mkdir(parents=True, exist_ok=True)
                         # image_path_for_save = Path(f"event_1/attendee_documents/{image_filename}")
-                        saved_image_path = await self.save_pdf_as_jpg(base64_data, image_path)
+                        saved_image_path = await self.save_pdf_as_jpg(
+                            base64_data, image_path
+                        )
                         return saved_image_path
 
                     else:
-                        raise ValueError(f"Некорректный тип содержимого для документа {doc_name}: {content_type}")
+                        raise ValueError(
+                            f"Некорректный тип содержимого для документа {doc_name}: {content_type}"
+                        )
                 else:
-                    raise ValueError(f"Не удалось получить документ {doc_name}. Статус: {response.status}")
+                    raise ValueError(
+                        f"Не удалось получить документ {doc_name}. Статус: {response.status}"
+                    )
 
     # Основная функция обработки данных
     async def reload(self, db: Session):
@@ -301,17 +327,35 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
 
             for item in data:
                 try:
-                    sex_id = True if item["sex"] == "М" else False if item["sex"] == "Ж" else None
-                    country_id = 1 if item["country"] == "Казахстан" else 2 if  item["country"] == "Узбекистан" else 1
-                    doc_id = 1 if item["docType"] == "Документ, удостоверяющий личность " else 2 if item["docType"] == "Заграничный паспорт" else None
+                    sex_id = (
+                        True
+                        if item["sex"] == "М"
+                        else False if item["sex"] == "Ж" else None
+                    )
+                    country_id = (
+                        1
+                        if item["country"] == "Казахстан"
+                        else 2 if item["country"] == "Узбекистан" else 1
+                    )
+                    doc_id = (
+                        1
+                        if item["docType"] == "Документ, удостоверяющий личность "
+                        else 2 if item["docType"] == "Заграничный паспорт" else None
+                    )
 
                     photo_paths = ""
                     if item.get("photo"):
                         photo_filename = f"{item['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-                        photo_path = Path(f"media/event_1/attendee_photos/{photo_filename}")
+                        photo_path = Path(
+                            f"media/event_1/attendee_photos/{photo_filename}"
+                        )
                         photo_path.parent.mkdir(parents=True, exist_ok=True)
-                        photo_path_for_save = Path(f"event_1/attendee_photos/{photo_filename}")
-                        photo_paths = await self.save_base64_image(item["photo"], photo_path, photo_path_for_save)
+                        photo_path_for_save = Path(
+                            f"event_1/attendee_photos/{photo_filename}"
+                        )
+                        photo_paths = await self.save_base64_image(
+                            item["photo"], photo_path, photo_path_for_save
+                        )
 
                     doc_scan_files = item.get("docScan", "").split(", ")
                     doc_scans = []
@@ -319,17 +363,23 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
 
                     for doc_name in doc_scan_files:
                         try:
-                            doc_scan_base64 = await self.reload_doc_scan(extern_id, doc_name, token)
+                            doc_scan_base64 = await self.reload_doc_scan(
+                                extern_id, doc_name, token
+                            )
                             if doc_scan_base64:
                                 doc_scans.append(doc_scan_base64)
                         except ValueError as e:
-                            print(f"Ошибка при получении документа {doc_name}: {str(e)}")
+                            print(
+                                f"Ошибка при получении документа {doc_name}: {str(e)}"
+                            )
 
                     # Преобразование doc_scan: если одна запись, сохраняем как строку, иначе как список JSON
                     if len(doc_scans) == 1:
                         doc_scan_json = doc_scans[0]  # Сохраняем одну запись как строку
                     elif doc_scans:
-                        doc_scan_json = json.dumps(doc_scans)  # Сохраняем список как JSON
+                        doc_scan_json = json.dumps(
+                            doc_scans
+                        )  # Сохраняем список как JSON
                     else:
                         doc_scan_json = None  # Если пусто, присваиваем None
 
@@ -337,10 +387,15 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
                         "surname": item["surname"],
                         "firstname": item["firstname"],
                         "patronymic": item["patronymic"],
-                        "birth_date": datetime.strptime(item["birthDate"], "%d.%m.%Y").date() if item[
-                            "birthDate"] else "1992-12-12",
+                        "birth_date": (
+                            datetime.strptime(item["birthDate"], "%d.%m.%Y").date()
+                            if item["birthDate"]
+                            else "1992-12-12"
+                        ),
                         "post": item["company"],
-                        "doc_series": item["docSeries"][:12] if item["docSeries"] else None,
+                        "doc_series": (
+                            item["docSeries"][:12] if item["docSeries"] else None
+                        ),
                         "iin": item["iin"][:12] if item["iin"] else None,
                         "doc_number": str(item["docNumber"]),
                         "doc_begin": "2023-12-12",
@@ -359,7 +414,9 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
 
                     try:
                         # Поиск существующего участника
-                        attendee = db.query(Attendee).filter(Attendee.id == item["id"]).first()
+                        attendee = (
+                            db.query(Attendee).filter(Attendee.id == item["id"]).first()
+                        )
 
                         if not attendee:
                             # Создание новой записи

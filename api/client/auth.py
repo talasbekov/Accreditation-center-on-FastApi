@@ -34,7 +34,7 @@ async def login(
         auth = auth_service.login(form, db, Authorize)
         try:
             Authorize.set_access_cookies(auth["access_token"])
-            print(auth['access_token'], "token")
+            print(auth["access_token"], "token")
         except Exception as e:
             print(e)
         # Установка токенов в куки для использования в последующих запросах

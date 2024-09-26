@@ -10,9 +10,7 @@ from core import get_db
 from schemas import AttendeeRead, AttendeeUpdate, AttendeeCreate
 from services import attendee_service
 
-router = APIRouter(
-    prefix="/attendee", tags=["Attendees"]
-)
+router = APIRouter(prefix="/attendee", tags=["Attendees"])
 
 
 @router.post(
@@ -142,5 +140,5 @@ async def delete(
 
 
 @router.post("/reload/", summary="Reload Attendees")
-async def reload(db: Session = Depends(get_db)): 
+async def reload(db: Session = Depends(get_db)):
     return await attendee_service.reload(db)

@@ -1,6 +1,7 @@
 from datetime import date
 from typing import Optional
 
+from models import EmpStatusEnum
 from schemas import Model
 
 
@@ -10,7 +11,7 @@ class EmployerBase(Model):
     patronymic: Optional[str]
     start_date: Optional[date]
     end_date: Optional[date]
-    status: Optional[str]
+    status: Optional[EmpStatusEnum]
     record_id: Optional[str]
 
 
@@ -24,4 +25,6 @@ class EmployerUpdate(EmployerBase):
 
 class EmployerRead(EmployerBase, Model):
     id: int
-    pass
+
+    class Config:
+        orm_mode = True

@@ -27,8 +27,17 @@ def upgrade() -> None:
     op.create_table(
         'records',
         sa.Column('id', sa.Integer, primary_key=True),
-        sa.Column('name', sa.String(length=128), nullable=False),
-        sa.Column('count_state', sa.Integer, nullable=False),
+        sa.Column('name', sa.String(length=128), nullable=True),
+        sa.Column('count_state', sa.Integer, nullable=True),
+        sa.Column('count_list', sa.Integer, nullable=True),
+        sa.Column('count_on_leave', sa.Integer, nullable=True),
+        sa.Column('count_on_sick_leave', sa.Integer, nullable=True),
+        sa.Column('count_business_trip', sa.Integer, nullable=True),
+        sa.Column('count_seconded_in', sa.Integer, nullable=True),
+        sa.Column('count_seconded_out', sa.Integer, nullable=True),
+        sa.Column('count_on_duty', sa.Integer, nullable=True),
+        sa.Column('count_after_on_duty', sa.Integer, nullable=True),
+        sa.Column('count_at_the_competition', sa.Integer, nullable=True),
         sa.Column(
             'created_at', sa.DateTime, nullable=False, server_default=sa.func.now()
         ),

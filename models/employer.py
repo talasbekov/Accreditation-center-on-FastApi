@@ -4,7 +4,7 @@ from enum import Enum  # Используем чистое Enum для SQLAlchem
 from models import Model
 
 # Определяем перечисление без наследования от str
-class EmpStatusEnum(Enum):
+class EmpStatusEnum(str, Enum):
     IN_SERVICE = "в строю"
     ON_LEAVE = "в отпуске"
     ON_SICK_LEAVE = "на больничном"

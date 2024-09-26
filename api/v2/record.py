@@ -109,3 +109,10 @@ async def delete(
     """
 
     record_service.remove(db, str(id))
+
+@router.get("/department/{record_id}_directorate/count", response_model=dict)
+def get_employer_count_by_directorate(record_id: int, db: Session = Depends(get_db)):
+    """
+    Расход сотрудников всего департамента
+    """
+    return record_service.get_count_state(db, record_id)

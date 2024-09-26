@@ -6,6 +6,15 @@ from schemas import EmployerRead, Model
 class RecordBase(Model):
     name: Optional[str]
     count_state: Optional[int]
+    count_list: Optional[int]
+    count_on_leave: Optional[int]
+    count_on_sick_leave: Optional[int]
+    count_business_trip: Optional[int]
+    count_seconded_in: Optional[int]
+    count_seconded_out: Optional[int]
+    count_on_duty: Optional[int]
+    count_after_on_duty: Optional[int]
+    count_at_the_competition: Optional[int]
 
 
 class RecordCreate(RecordBase):

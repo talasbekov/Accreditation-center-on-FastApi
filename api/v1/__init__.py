@@ -22,4 +22,3 @@ router.include_router(country_router)
 router.include_router(doc_router)
 router.include_router(event_router)
 router.include_router(request_router)
-

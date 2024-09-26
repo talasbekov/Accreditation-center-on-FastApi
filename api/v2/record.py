@@ -9,9 +9,7 @@ from core import get_db
 from schemas import RecordRead, RecordUpdate, RecordCreate
 from services import record_service
 
-router = APIRouter(
-    prefix="/records", tags=["Records"]
-)
+router = APIRouter(prefix="/records", tags=["Records"])
 
 
 @router.get(
@@ -24,7 +22,6 @@ async def get_all(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-
 ):
     """
     Get all Records
@@ -44,7 +41,6 @@ async def create(
     *,
     db: Session = Depends(get_db),
     body: RecordCreate,
-
 ):
     """
     Create Record
@@ -61,7 +57,9 @@ async def create(
     summary="Get Record by id",
 )
 async def get_by_id(
-    *, db: Session = Depends(get_db), id: str,
+    *,
+    db: Session = Depends(get_db),
+    id: str,
 ):
     """
     Get Record by id
@@ -82,7 +80,6 @@ async def update(
     db: Session = Depends(get_db),
     id: str,
     body: RecordUpdate,
-
 ):
     """
     Update Record
@@ -100,7 +97,9 @@ async def update(
     summary="Delete Record",
 )
 async def delete(
-    *, db: Session = Depends(get_db), id: str,
+    *,
+    db: Session = Depends(get_db),
+    id: str,
 ):
     """
     Delete Record
@@ -110,9 +109,10 @@ async def delete(
 
     record_service.remove(db, str(id))
 
-@router.get("/department/{record_id}_directorate/count", response_model=dict)
-def get_employer_count_by_directorate(record_id: int, db: Session = Depends(get_db)):
+
+@router.get("/department/directorate/count", response_model=List[dict])
+def get_employer_count_by_directorate(db: Session = Depends(get_db)):
     """
     Расход сотрудников всего департамента
     """
-    return record_service.get_count_state(db, record_id)
+    return record_service.get_count_state(db)

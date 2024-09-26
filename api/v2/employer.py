@@ -9,9 +9,7 @@ from core import get_db
 from schemas import EmployerRead, EmployerUpdate, EmployerCreate
 from services import employer_service
 
-router = APIRouter(
-    prefix="/employers", tags=["Employers"]
-)
+router = APIRouter(prefix="/employers", tags=["Employers"])
 
 
 @router.get(
@@ -24,7 +22,6 @@ async def get_all(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-
 ):
     """
     Get all Employers
@@ -44,7 +41,6 @@ async def create(
     *,
     db: Session = Depends(get_db),
     body: EmployerCreate,
-
 ):
     """
     Create Employer
@@ -61,7 +57,9 @@ async def create(
     summary="Get Employer by id",
 )
 async def get_by_id(
-    *, db: Session = Depends(get_db), id: str,
+    *,
+    db: Session = Depends(get_db),
+    id: str,
 ):
     """
     Get Employer by id
@@ -82,7 +80,6 @@ async def update(
     db: Session = Depends(get_db),
     id: str,
     body: EmployerUpdate,
-
 ):
     """
     Update Employer
@@ -100,7 +97,9 @@ async def update(
     summary="Delete Employer",
 )
 async def delete(
-    *, db: Session = Depends(get_db), id: str,
+    *,
+    db: Session = Depends(get_db),
+    id: str,
 ):
     """
     Delete Employer
@@ -109,6 +108,7 @@ async def delete(
     """
 
     employer_service.remove(db, str(id))
+
 
 @router.get(
     "",
@@ -120,7 +120,6 @@ async def get_all_emp_by_state(
     db: Session = Depends(get_db),
     skip: int = 0,
     limit: int = 100,
-
 ):
     """
     Get all Employers
@@ -143,7 +142,7 @@ def get_emp_statuses():
         "SECONDED_OUT": "откомандирован",
         "ON_DUTY": "на дежурстве",
         "AFTER_ON_DUTY": "после дежурства",
-        "AT_THE_COMPETITION": "на соревновании"
+        "AT_THE_COMPETITION": "на соревновании",
     }
 
 
@@ -154,9 +153,15 @@ def get_employer_count_by_department(db: Session = Depends(get_db)):
     """
     return {
         "Количество сотрудников по штату всего департамента": employer_service.get_count_emp_by_state(),
-        "Количество сотрудников по списку всего департамента": employer_service.get_count_emp_by_list(db),
-        "Количество вакантных мест в департаменте": employer_service.get_count_vacant(db),
-        "Количество сотрудников которые в строю всего департамента": employer_service.get_count_emp_in_service(db),
+        "Количество сотрудников по списку всего департамента": employer_service.get_count_emp_by_list(
+            db
+        ),
+        "Количество вакантных мест в департаменте": employer_service.get_count_vacant(
+            db
+        ),
+        "Количество сотрудников которые в строю всего департамента": employer_service.get_count_emp_in_service(
+            db
+        ),
     }
 
 
@@ -172,8 +177,12 @@ def get_employer_count_by_directorate(record_id: int, db: Session = Depends(get_
         "Количество сотрудников по списку в управлении": employer_service.get_count_emp_by_list_from_directorate(
             db, record_id
         ),
-        "Количество сотрудников которые в строю в управлении": employer_service.get_count_emp_in_service_from_directorate(db, record_id),
-        "Количество вакантных мест в управлении": employer_service.get_count_vacant_in_directorate(db, record_id),
+        "Количество сотрудников которые в строю в управлении": employer_service.get_count_emp_in_service_from_directorate(
+            db, record_id
+        ),
+        "Количество вакантных мест в управлении": employer_service.get_count_vacant_in_directorate(
+            db, record_id
+        ),
     }
 
 
@@ -183,19 +192,31 @@ def get_employers_by_status(status: str, db: Session = Depends(get_db)):
     Все сотрудники по статусу, например: на больничном, и т.д.
     """
     return {
-        "Количество сотрудников по статусу всего департамента": employer_service.get_count_emp_by_status(db, status),
-        "Все сотрудники по статусу, например: на больничном, и т.д.": employer_service.get_emp_by_status(db, status)
+        "Количество сотрудников по статусу всего департамента": employer_service.get_count_emp_by_status(
+            db, status
+        ),
+        "Все сотрудники по статусу, например: на больничном, и т.д.": employer_service.get_emp_by_status(
+            db, status
+        ),
     }
 
 
 @router.get("department/{record_id}_directorate/status", response_model=dict)
-def get_employers_by_status_from_directorate(record_id: int, status: str, db: Session = Depends(get_db)):
+def get_employers_by_status_from_directorate(
+    record_id: int, status: str, db: Session = Depends(get_db)
+):
     """
     Все сотрудники по статусу в управлении
     """
 
     return {
-            "Количество сотрудников по статусу в управлении": employer_service.get_count_emp_by_all_status_from_directorate(db, record_id),
-            "Количество сотрудников по каждому статусу в управлении": employer_service.get_count_emp_by_status_from_directorate(db, status, record_id),
-            "Все сотрудники по статусу, например: на больничном, и т.д. в управлении": employer_service.get_emp_by_status_from_directorate(db, status, record_id)
-        }
+        "Количество сотрудников по статусу в управлении": employer_service.get_count_emp_by_all_status_from_directorate(
+            db, record_id
+        ),
+        "Количество сотрудников по каждому статусу в управлении": employer_service.get_count_emp_by_status_from_directorate(
+            db, status, record_id
+        ),
+        "Все сотрудники по статусу, например: на больничном, и т.д. в управлении": employer_service.get_emp_by_status_from_directorate(
+            db, status, record_id
+        ),
+    }

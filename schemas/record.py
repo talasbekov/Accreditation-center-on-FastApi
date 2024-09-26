@@ -27,4 +27,6 @@ class RecordUpdate(RecordBase):
 
 class RecordRead(RecordBase, Model):
     id: int
+    count_in_service: Optional[int]
+    count_vacant: Optional[int]
     employers: Optional[list[EmployerRead]]

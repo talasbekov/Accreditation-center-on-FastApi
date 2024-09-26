@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from models import (
     Employer,
     Record,
-    EmpStatusEnum
+    EmpStatusEnum,
 )  # Предполагается, что у вас есть модель Employer в models.py
 from schemas import (
     EmployerCreate,
@@ -28,10 +28,14 @@ class EmployerService(ServiceBase[Employer, EmployerCreate, EmployerUpdate]):
         list_count = self.get_count_emp_by_list(db)
 
         if not isinstance(state_count, int):
-            raise ValueError(f"get_count_emp_by_state() returned {type(state_count)}, expected int.")
+            raise ValueError(
+                f"get_count_emp_by_state() returned {type(state_count)}, expected int."
+            )
 
         if not isinstance(list_count, int):
-            raise ValueError(f"get_count_emp_by_list() returned {type(list_count)}, expected int.")
+            raise ValueError(
+                f"get_count_emp_by_list() returned {type(list_count)}, expected int."
+            )
 
         return state_count - list_count
 
@@ -43,7 +47,9 @@ class EmployerService(ServiceBase[Employer, EmployerCreate, EmployerUpdate]):
     def get_count_emp_by_all_status(self, db: Session):
         statuses = []
         for status in EmpStatusEnum:
-            emp_count_by_all_status = db.query(self.model).filter(self.model.status == status).count()
+            emp_count_by_all_status = (
+                db.query(self.model).filter(self.model.status == status).count()
+            )
             statuses.append(emp_count_by_all_status)
         return sum(statuses)
 
@@ -66,33 +72,47 @@ class EmployerService(ServiceBase[Employer, EmployerCreate, EmployerUpdate]):
 
     # Количество вакантных мест в управлении
     def get_count_vacant_in_directorate(self, db: Session, record_id: int):
-        return self.get_count_emp_by_state_from_directorate(db, record_id) - self.get_count_emp_by_list_from_directorate(db, record_id)
+        return self.get_count_emp_by_state_from_directorate(
+            db, record_id
+        ) - self.get_count_emp_by_list_from_directorate(db, record_id)
 
     # Количество сотрудников по статусу всего департамента
     def get_count_emp_by_all_status_from_directorate(self, db: Session, record_id: int):
         statuses = []
         for status in EmpStatusEnum:
-            emp_count_by_all_status = db.query(self.model).filter(
-                self.model.status == status, self.model.record_id == record_id
-            ).count()
+            emp_count_by_all_status = (
+                db.query(self.model)
+                .filter(self.model.status == status, self.model.record_id == record_id)
+                .count()
+            )
             statuses.append(emp_count_by_all_status)
         return sum(statuses)
 
     # Количество сотрудников по статусу в управлении
-    def get_count_emp_by_status_from_directorate(self, db: Session, status: str, record_id: int):
-        return db.query(self.model).filter(
-            self.model.status == status, self.model.record_id == record_id
-        ).count()
+    def get_count_emp_by_status_from_directorate(
+        self, db: Session, status: str, record_id: int
+    ):
+        return (
+            db.query(self.model)
+            .filter(self.model.status == status, self.model.record_id == record_id)
+            .count()
+        )
 
     # Количество сотрудников которые в строю в управлении
     def get_count_emp_in_service_from_directorate(self, db: Session, record_id: int):
-        return self.get_count_emp_by_list_from_directorate(db, record_id) - self.get_count_emp_by_all_status_from_directorate(db, record_id)
+        return self.get_count_emp_by_list_from_directorate(
+            db, record_id
+        ) - self.get_count_emp_by_all_status_from_directorate(db, record_id)
 
     # Все сотрудники по статусу в управлении
-    def get_emp_by_status_from_directorate(self, db: Session, status: str, record_id: int):
-        return db.query(self.model).filter(
-            self.model.status == status, self.model.record_id == record_id
-        ).all()
+    def get_emp_by_status_from_directorate(
+        self, db: Session, status: str, record_id: int
+    ):
+        return (
+            db.query(self.model)
+            .filter(self.model.status == status, self.model.record_id == record_id)
+            .all()
+        )
 
 
 employer_service = EmployerService(Employer)

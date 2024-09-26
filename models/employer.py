@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from enum import Enum  # Используем чистое Enum для SQLAlchemy
 from models import Model
 
+
 # Определяем перечисление без наследования от str
 class EmpStatusEnum(str, Enum):
     IN_SERVICE = "в строю"
@@ -25,7 +26,9 @@ class Employer(Model):
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
     # Используем SqlEnum для SQLAlchemy Enum
-    status = Column(SqlEnum(EmpStatusEnum), default=EmpStatusEnum.IN_SERVICE, nullable=False)
+    status = Column(
+        SqlEnum(EmpStatusEnum), default=EmpStatusEnum.IN_SERVICE, nullable=False
+    )
     record_id = Column(Integer, ForeignKey("records.id"), nullable=True)
 
     records = relationship("Record", back_populates="employers")

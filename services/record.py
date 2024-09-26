@@ -20,27 +20,65 @@ class RecordService(ServiceBase[Record, RecordCreate, RecordUpdate]):
         return 136
 
     # Количество сотрудников по штату управления
-    def get_count_state(self, db: Session, record_id: int):
-        rec = db.query(Record).filter(Record.id == record_id).first()
+    def get_count_state(self, db: Session):
+        records = db.query(self.model).all()
 
-        if rec is None:
-            return {"error": "Record not found"}
+        if records is None:
+            return {"error": "Records not found"}
 
-        count_vacant = rec.count_state - rec.count_list
-        count_in_service = rec.count_list - (rec.count_on_leave + rec.count_on_sick_leave + rec.count_business_trip + rec.count_seconded_in + rec.count_seconded_out + rec.count_on_duty + rec.count_after_on_duty + rec.count_at_the_competition)
-        return {
-            "Количество сотрудников по штату в управлении": rec.count_state,
-            "Количество сотрудников по списку в управлении": rec.count_list,
-            "Количество вакантных мест в управлении": count_vacant,
-            "Количество сотрудников которые в строю в управлении": count_in_service,
-            "В отпуске": rec.count_on_leave,
-            "На больничном": rec.count_on_sick_leave,
-            "В командировке": rec.count_business_trip,
-            "Прикомандирован": rec.count_seconded_in,
-            "Откомандирован": rec.count_seconded_out,
-            "На дежурстве": rec.count_on_duty,
-            "После дежурства": rec.count_after_on_duty,
-            "на соревнованиях": rec.count_at_the_competition
-        }
+        recs = []
+        for r in records:
+            rec = db.query(Record).filter(Record.id == r.id).first()
+
+            if rec is None:
+                return {"error": "Record not found"}
+
+            # Приведение всех значений к int с заменой None на 0
+            count_state = int(rec.count_state or 0)
+            print(count_state)
+            count_list = int(rec.count_list or 0)
+            count_on_leave = int(rec.count_on_leave or 0)
+            count_on_sick_leave = int(rec.count_on_sick_leave or 0)
+            count_business_trip = int(rec.count_business_trip or 0)
+            count_seconded_in = int(rec.count_seconded_in or 0)
+            count_seconded_out = int(rec.count_seconded_out or 0)
+            count_on_duty = int(rec.count_on_duty or 0)
+            count_after_on_duty = int(rec.count_after_on_duty or 0)
+            count_at_the_competition = int(rec.count_at_the_competition or 0)
+
+            # Рассчитываем количество вакантных мест и сотрудников "в строю"
+            count_vacant = count_state - count_list
+            print(count_vacant, " vacant+++")
+            count_in_service = count_list - (
+                    count_on_leave
+                    + count_on_sick_leave
+                    + count_business_trip
+                    + count_seconded_in
+                    + count_seconded_out
+                    + count_on_duty
+                    + count_after_on_duty
+                    + count_at_the_competition
+            )
+            print(count_in_service, " vstroiu+++")
+
+            recs.append( {
+                "id": rec.id,
+                "name": rec.name,
+                "count_state": count_state,
+                "count_list": count_list,
+                "count_vacant": count_vacant,
+                "count_in_service": count_in_service,
+                "count_on_leave": count_on_leave,
+                "count_on_sick_leave": count_on_sick_leave,
+                "count_business_trip": count_business_trip,
+                "count_seconded_in": count_seconded_in,
+                "count_seconded_out": count_seconded_out,
+                "count_on_duty": count_on_duty,
+                "count_after_on_duty": count_after_on_duty,
+                "count_at_the_competition": count_at_the_competition,
+            }
+            )
+        return recs
+
 
 record_service = RecordService(Record)

@@ -39,7 +39,6 @@ class RecordService(ServiceBase[Record, RecordCreate, RecordUpdate]):
 
             # Приведение всех значений к int с заменой None на 0
             count_state = int(rec.count_state or 0)
-            print(count_state)
             count_list = int(rec.count_list or 0)
             count_on_leave = int(rec.count_on_leave or 0)
             count_on_sick_leave = int(rec.count_on_sick_leave or 0)
@@ -52,7 +51,6 @@ class RecordService(ServiceBase[Record, RecordCreate, RecordUpdate]):
 
             # Рассчитываем количество вакантных мест и сотрудников "в строю"
             count_vacant = count_state - count_list
-            print(count_vacant, " vacant+++")
             count_in_service = count_list - (
                     count_on_leave
                     + count_on_sick_leave
@@ -63,7 +61,6 @@ class RecordService(ServiceBase[Record, RecordCreate, RecordUpdate]):
                     + count_after_on_duty
                     + count_at_the_competition
             )
-            print(count_in_service, " vstroiu+++")
 
             recs.append( {
                 "id": rec.id,
@@ -96,47 +93,32 @@ class RecordService(ServiceBase[Record, RecordCreate, RecordUpdate]):
         # Открываем заранее подготовленный шаблон Word
         doc = Document(file_path)
 
-        # Проходим по каждому управлению и подставляем информацию
-        for rec in recs:
-            # Ищем плейсхолдеры по ключевым словам и заменяем их на реальные данные в таблицах
-            for table in doc.tables:
-                for row in table.rows:
-                    for cell in row.cells:
-                        if "{{ id }}" in cell.text:
-                            cell.text = cell.text.replace("{{ id }}", str(rec.get('id', '')))
-                        if "{{ name }}" in cell.text:
-                            cell.text = cell.text.replace("{{ name }}", rec.get('name', ''))
-                        if "{{ count_state }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_state }}", str(rec.get('count_state', 0)))
-                        if "{{ count_list }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_list }}", str(rec.get('count_list', 0)))
-                        if "{{ count_in_service }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_in_service }}", str(rec.get('count_in_service', 0)))
-                        if "{{ count_vacant }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_vacant }}", str(rec.get('count_vacant', 0)))
-                        if "{{ count_on_leave }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_on_leave }}", str(rec.get('count_on_leave', 0)))
-                        if "{{ count_business_trip }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_business_trip }}",
-                                                          str(rec.get('count_business_trip', 0)))
-                        if "{{ count_on_sick_leave }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_on_sick_leave }}",
-                                                          str(rec.get('count_on_sick_leave', 0)))
-                        if "{{ count_on_duty }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_on_duty }}", str(rec.get('count_on_duty', 0)))
-                        if "{{ count_after_on_duty }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_after_on_duty }}",
-                                                          str(rec.get('count_after_on_duty', 0)))
-                        if "{{ count_at_the_competition }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_at_the_competition }}",
-                                                          str(rec.get('count_at_the_competition', 0)))
-                        if "{{ count_seconded_in }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_seconded_in }}",
-                                                          str(rec.get('count_seconded_in', 0)))
-                        if "{{ count_seconded_out }}" in cell.text:
-                            cell.text = cell.text.replace("{{ count_seconded_out }}",
-                                                          str(rec.get('count_seconded_out', 0)))
+        # Проходим по таблицам, начиная с третьей строки первой таблицы
+        for table in doc.tables:
+            row_idx = 5  # Начинаем с пятой строки (индексация начинается с 0)
 
+            for rec in recs:
+                # Получаем строку таблицы для текущей записи
+                row = table.rows[row_idx]
+
+                # Заполняем ячейки таблицы данными
+                row.cells[0].text = str(rec.get('id', ''))
+                row.cells[1].text = rec.get('name', '')
+                row.cells[2].text = str(rec.get('count_state', 0))
+                row.cells[3].text = str(rec.get('count_list', 0))
+                row.cells[4].text = str(rec.get('count_in_service', 0))
+                row.cells[5].text = str(rec.get('count_vacant', 0))
+                row.cells[6].text = str(rec.get('count_on_leave', 0))
+                row.cells[7].text = str(rec.get('count_business_trip', 0))
+                row.cells[8].text = str(rec.get('count_on_sick_leave', 0))
+                row.cells[9].text = str(rec.get('count_on_duty', 0))
+                row.cells[10].text = str(rec.get('count_after_on_duty', 0))
+                row.cells[11].text = str(rec.get('count_at_the_competition', 0))
+                row.cells[12].text = str(rec.get('count_seconded_in', 0))
+                row.cells[13].text = str(rec.get('count_seconded_out', 0))
+
+                # Переходим к следующей строке для следующей записи
+                row_idx += 1
 
         # Сохраняем измененный документ во временный буфер
         buffer = BytesIO()

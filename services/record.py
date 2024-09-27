@@ -2,6 +2,10 @@ import os
 from typing import Optional
 from sqlalchemy.orm import Session
 from docx import Document
+from docx.shared import Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
 
 from io import BytesIO
 from models import (
@@ -86,47 +90,107 @@ class RecordService(ServiceBase[Record, RecordCreate, RecordUpdate]):
         Функция для создания отчета на основе шаблона Word с подстановкой данных
         """
         file_path = './test.docx'
-        # Проверка на существование файла
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Файл {file_path} не найден. Пожалуйста, проверьте путь к файлу.")
 
-        # Открываем заранее подготовленный шаблон Word
         doc = Document(file_path)
 
-        # Проходим по таблицам, начиная с третьей строки первой таблицы
         for table in doc.tables:
-            row_idx = 5  # Начинаем с пятой строки (индексация начинается с 0)
+            row_idx = 5  # Начинаем с третьей строки
 
             for rec in recs:
-                # Получаем строку таблицы для текущей записи
                 row = table.rows[row_idx]
 
-                # Заполняем ячейки таблицы данными
-                row.cells[0].text = str(rec.get('id', ''))
-                row.cells[1].text = rec.get('name', '')
-                row.cells[2].text = str(rec.get('count_state', 0))
-                row.cells[3].text = str(rec.get('count_list', 0))
-                row.cells[4].text = str(rec.get('count_in_service', 0))
-                row.cells[5].text = str(rec.get('count_vacant', 0))
-                row.cells[6].text = str(rec.get('count_on_leave', 0))
-                row.cells[7].text = str(rec.get('count_business_trip', 0))
-                row.cells[8].text = str(rec.get('count_on_sick_leave', 0))
-                row.cells[9].text = str(rec.get('count_on_duty', 0))
-                row.cells[10].text = str(rec.get('count_after_on_duty', 0))
-                row.cells[11].text = str(rec.get('count_at_the_competition', 0))
-                row.cells[12].text = str(rec.get('count_seconded_in', 0))
-                row.cells[13].text = str(rec.get('count_seconded_out', 0))
+                # Пример заполнения ячеек и применения форматирования
+                for cell_idx, value in enumerate([
+                    str(rec.get('id', '')),
+                    rec.get('name', ''),
+                    str(rec.get('count_state', 0)),
+                    str(rec.get('count_list', 0)),
+                    str(rec.get('count_in_service', 0)),
+                    str(rec.get('count_vacant', 0)),
+                    str(rec.get('count_on_leave', 0)),
+                    str(rec.get('count_business_trip', 0)),
+                    str(rec.get('count_on_sick_leave', 0)),
+                    str(rec.get('count_on_duty', 0)),
+                    str(rec.get('count_after_on_duty', 0)),
+                    str(rec.get('count_at_the_competition', 0)),
+                    str(rec.get('count_seconded_in', 0)),
+                    str(rec.get('count_seconded_out', 0))
+                ]):
+                    cell = row.cells[cell_idx]
+                    cell.text = value
 
-                # Переходим к следующей строке для следующей записи
+                    # Применение выравнивания по центру (горизонтально и вертикально)
+                    paragraph = cell.paragraphs[0]
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER  # Горизонтальное выравнивание
+
+                    # Применение стиля к тексту
+                    run = paragraph.runs[0]
+                    run.font.size = Pt(12)  # Размер шрифта
+                    run.font.name = 'Times New Roman'  # Имя шрифта
+
+                    # Применение вертикального выравнивания
+                    tc = cell._element
+                    tcPr = tc.get_or_add_tcPr()
+                    tcVAlign = OxmlElement('w:vAlign')
+                    tcVAlign.set(qn('w:val'), 'center')
+                    tcPr.append(tcVAlign)
+
                 row_idx += 1
 
-        # Сохраняем измененный документ во временный буфер
         buffer = BytesIO()
         doc.save(buffer)
         buffer.seek(0)
 
-        # Возвращаем документ для выгрузки
         return buffer
+
+    # def create_word_report_from_template(self, recs: list):
+    #     """
+    #     Функция для создания отчета на основе шаблона Word с подстановкой данных
+    #     """
+    #     file_path = './test.docx'
+    #     # Проверка на существование файла
+    #     if not os.path.exists(file_path):
+    #         raise FileNotFoundError(f"Файл {file_path} не найден. Пожалуйста, проверьте путь к файлу.")
+    #
+    #     # Открываем заранее подготовленный шаблон Word
+    #     doc = Document(file_path)
+    #
+    #     # Проходим по таблицам, начиная с третьей строки первой таблицы
+    #     for table in doc.tables:
+    #         row_idx = 5  # Начинаем с пятой строки (индексация начинается с 0)
+    #
+    #         for rec in recs:
+    #             # Получаем строку таблицы для текущей записи
+    #             row = table.rows[row_idx]
+    #
+    #             # Заполняем ячейки таблицы данными
+    #             row.cells[0].text = str(rec.get('id', ''))
+    #             row.cells[1].text = rec.get('name', '')
+    #             row.cells[2].text = str(rec.get('count_state', 0))
+    #             row.cells[3].text = str(rec.get('count_list', 0))
+    #             row.cells[4].text = str(rec.get('count_in_service', 0))
+    #             row.cells[5].text = str(rec.get('count_vacant', 0))
+    #             row.cells[6].text = str(rec.get('count_on_leave', 0))
+    #             row.cells[7].text = str(rec.get('count_business_trip', 0))
+    #             row.cells[8].text = str(rec.get('count_on_sick_leave', 0))
+    #             row.cells[9].text = str(rec.get('count_on_duty', 0))
+    #             row.cells[10].text = str(rec.get('count_after_on_duty', 0))
+    #             row.cells[11].text = str(rec.get('count_at_the_competition', 0))
+    #             row.cells[12].text = str(rec.get('count_seconded_in', 0))
+    #             row.cells[13].text = str(rec.get('count_seconded_out', 0))
+    #
+    #             # Переходим к следующей строке для следующей записи
+    #             row_idx += 1
+    #
+    #     # Сохраняем измененный документ во временный буфер
+    #     buffer = BytesIO()
+    #     doc.save(buffer)
+    #     buffer.seek(0)
+    #
+    #     # Возвращаем документ для выгрузки
+    #     return buffer
 
 
 record_service = RecordService(Record)

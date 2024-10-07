@@ -11,6 +11,9 @@ class StateBase(Model):
     position_id: Optional[int]
     employer_id: Optional[int]
 
+    class Config:
+        orm_mode = True
+
 
 class StateCreate(StateBase):
     pass
@@ -22,4 +25,7 @@ class StateUpdate(StateBase):
 
 class StateRead(StateBase, Model):
     id: int
-    departments: Optional[list[DepartmentRead]]
+    departments: Optional[DepartmentRead]
+
+    class Config:
+        orm_mode = True

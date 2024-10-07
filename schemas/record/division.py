@@ -4,8 +4,10 @@ from schemas.record import EmployerRead
 
 
 class DivisionBase(NamedModel):
-    name: Optional[str]
-    management_id: Optional[str]
+    management_id: Optional[int]
+
+    class Config:
+        orm_mode = True
 
 
 class DivisionCreate(DivisionBase):
@@ -19,3 +21,6 @@ class DivisionUpdate(DivisionBase):
 class DivisionRead(DivisionBase, NamedModel):
     id: int
     employers: Optional[list[EmployerRead]]
+
+    class Config:
+        orm_mode = True

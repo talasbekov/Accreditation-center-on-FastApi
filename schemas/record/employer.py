@@ -10,7 +10,10 @@ class EmployerBase(Model):
     patronymic: Optional[str]
     start_date: Optional[date]
     end_date: Optional[date]
-    division_id: Optional[str]
+    division_id: Optional[int]
+
+    class Config:
+        orm_mode = True
 
 
 class EmployerCreate(EmployerBase):

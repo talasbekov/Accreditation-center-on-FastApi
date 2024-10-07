@@ -5,6 +5,7 @@ from schemas.record import EmployerRead
 
 class DivisionBase(NamedModel):
     name: Optional[str]
+    management_id: Optional[str]
 
 
 class DivisionCreate(DivisionBase):

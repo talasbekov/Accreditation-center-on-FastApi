@@ -6,6 +6,7 @@ from schemas.record import DivisionRead
 
 class ManagementBase(NamedModel):
     name: Optional[str]
+    department_id: Optional[str]
 
 
 class ManagementCreate(ManagementBase):

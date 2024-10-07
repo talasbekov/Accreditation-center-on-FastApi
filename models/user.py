@@ -2,8 +2,7 @@ from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import relationship
 
-from models import NamedModel
-from models.association import user_event_association
+from models import NamedModel, user_event_association
 
 
 class User(NamedModel):

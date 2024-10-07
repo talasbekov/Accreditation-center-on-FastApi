@@ -7,13 +7,13 @@ from core import get_db
 from schemas import LoginForm, RegistrationForm
 from services import auth_service
 
-router = APIRouter(prefix="/auth", tags=["Authorization"])
+router = APIRouter(prefix="/auth2", tags=["Authorization_V2"])
 
 
 @router.post("/login", summary="Login")
-async def login(form: LoginForm,
-                db: Session = Depends(get_db),
-                Authorize: AuthJWT = Depends()):
+async def login(
+    form: LoginForm, db: Session = Depends(get_db), Authorize: AuthJWT = Depends()
+):
     """
     Login to the system.
 

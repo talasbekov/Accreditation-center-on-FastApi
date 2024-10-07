@@ -1,42 +1,17 @@
 from .base import Model, NamedModel, ReadModel, ReadNamedModel, NamesModel
-from .attendee import (
-    AttendeeBase,
-    AttendeeCreate,
-    AttendeeUpdate,
-    AttendeeRead,
-    GovAttendee,
-    GovAttendeeCreate,
-    GovAttendeeRequest,
-)
-from .category import CategoryBase, CategoryCreate, CategoryUpdate, CategoryRead
-from .city import CityBase, CityCreate, CityUpdate, CityRead
-from .country import CountryBase, CountryCreate, CountryUpdate, CountryRead
-from .document_type import (
-    DocumentTypeBase,
-    DocumentTypeCreate,
-    DocumentTypeUpdate,
-    DocumentTypeRead,
-)
-from .event import (
-    EventBase,
-    EventCreate,
-    EventUpdate,
-    EventRead,
-    EventReadWithAttendies,
-)
-from .request import RequestBase, RequestCreate, RequestUpdate, RequestRead
+from .record import EmployerBase, EmployerRead, EmployerCreate, EmployerUpdate
+from .auth import LoginForm, RegistrationForm
 from .user import UserBase, UserCreate, UserUpdate, UserRead
-from .auth import LoginForm, RegistrationForm, UserRegistrationForm
-from .permission import (
-    PermissionBase,
-    PermissionCreate,
-    PermissionUpdate,
-    PermissionType,
-    PermissionTypeRead,
-    PermissionPaginationRead,
-    PermissionRead,
+from .accr import (
+    CountryBase, CountryRead, CountryCreate, CountryUpdate,
+    CityBase, CityRead, CityCreate, CityUpdate,
+    CategoryBase, CategoryRead, CategoryCreate, CategoryUpdate,
+    PermissionBase, PermissionRead, PermissionCreate, PermissionUpdate,
+    PermissionType, PermissionTypeRead, PermissionPaginationRead,
+    AttendeeBase, AttendeeRead, AttendeeCreate, AttendeeUpdate, GovAttendee,
+    GovAttendeeCreate, GovAttendeeRequest, GovDocumentTypeRead, GovAttendeeRead,
+    DocumentTypeBase, DocumentTypeRead, DocumentTypeCreate, DocumentTypeUpdate,
+    RequestBase, RequestRead, RequestCreate, RequestUpdate,
+    EventBase, EventRead, EventCreate, EventUpdate, EventReadWithAttendies
 )
-from .for_government_agencies import GovAttendeeRead
-
-from .employer import EmployerBase, EmployerRead, EmployerCreate, EmployerUpdate
-from .record import RecordBase, RecordRead, RecordCreate, RecordUpdate
+from .record import *

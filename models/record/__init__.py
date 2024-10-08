@@ -5,3 +5,4 @@ from .managemant import Management
 from .department import Department
 from .employer import Employer
 from .state import State
+from .status import Status

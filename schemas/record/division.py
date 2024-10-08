@@ -1,6 +1,6 @@
 from typing import Optional
-from schemas import NamedModel
-from schemas.record import EmployerRead
+from schemas import NamedModel, Model
+from schemas.record import ManagementRead
 
 
 class DivisionBase(NamedModel):
@@ -20,7 +20,15 @@ class DivisionUpdate(DivisionBase):
 
 class DivisionRead(DivisionBase, NamedModel):
     id: int
-    employers: Optional[list[EmployerRead]]
+    managements: Optional[ManagementRead]
+
+    class Config:
+        orm_mode = True
+
+
+class DivisionStateRead(Model):
+    id: int
+    name: Optional[str]
 
     class Config:
         orm_mode = True

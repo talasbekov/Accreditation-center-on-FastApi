@@ -49,7 +49,6 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=128), nullable=False),
         sa.Column("namekz", sa.String(length=128), nullable=True),
         sa.Column("nameen", sa.String(length=128), nullable=True),
-        sa.Column("category", sa.String(length=10), nullable=False),
 
         sa.Column(
             'created_at', sa.DateTime, nullable=False, server_default=sa.func.now()
@@ -123,20 +122,15 @@ def upgrade() -> None:
         ),
     )
 
-    # Создание таблицы employers
+    # Создание таблицы statuses
     op.create_table(
-        'employers',
-        sa.Column('id', sa.Integer, primary_key=True, index=True),
-        sa.Column('surname', sa.String(length=128), nullable=False),
-        sa.Column('firstname', sa.String(length=128), nullable=False),
-        sa.Column('patronymic', sa.String(length=128), nullable=True),
+        'statuses',
+        sa.Column('id', sa.Integer, primary_key=True),
+        sa.Column("name", sa.String(length=128), nullable=False),
+        sa.Column("namekz", sa.String(length=128), nullable=True),
+        sa.Column("nameen", sa.String(length=128), nullable=True),
         sa.Column('start_date', sa.Date, nullable=True),
         sa.Column('end_date', sa.Date, nullable=True),
-
-        sa.Column('rank_id', sa.Integer, sa.ForeignKey('ranks.id')),
-        sa.Column('position_id', sa.Integer, sa.ForeignKey('positions.id')),
-        sa.Column('division_id', sa.Integer, sa.ForeignKey('divisions.id')),
-
         sa.Column(
             'created_at', sa.DateTime, nullable=False, server_default=sa.func.now()
         ),
@@ -149,7 +143,32 @@ def upgrade() -> None:
         ),
     )
 
-    # Создание таблицы divisions
+    # Создание таблицы employers
+    op.create_table(
+        'employers',
+        sa.Column('id', sa.Integer, primary_key=True, index=True),
+        sa.Column('surname', sa.String(length=128), nullable=False),
+        sa.Column('firstname', sa.String(length=128), nullable=False),
+        sa.Column('patronymic', sa.String(length=128), nullable=True),
+        sa.Column('sort', sa.Integer, nullable=False),
+
+        sa.Column('rank_id', sa.Integer, sa.ForeignKey('ranks.id')),
+        sa.Column('position_id', sa.Integer, sa.ForeignKey('positions.id')),
+        sa.Column('division_id', sa.Integer, sa.ForeignKey('divisions.id')),
+        sa.Column('status_id', sa.Integer, sa.ForeignKey('statuses.id')),
+        sa.Column(
+            'created_at', sa.DateTime, nullable=False, server_default=sa.func.now()
+        ),
+        sa.Column(
+            'updated_at',
+            sa.DateTime,
+            nullable=False,
+            server_default=sa.func.now(),
+            onupdate=sa.func.now(),
+        ),
+    )
+
+    # Создание таблицы states
     op.create_table(
         'states',
         sa.Column('id', sa.Integer, primary_key=True),
@@ -158,7 +177,7 @@ def upgrade() -> None:
         sa.Column('management_id', sa.Integer, sa.ForeignKey('managements.id')),
         sa.Column('division_id', sa.Integer, sa.ForeignKey('divisions.id')),
         sa.Column('position_id', sa.Integer, sa.ForeignKey('positions.id')),
-        sa.Column('employer_id', sa.Integer, sa.ForeignKey('employers.id')),
+        sa.Column('employer_id', sa.Integer, sa.ForeignKey('employers.id'), nullable=True),
 
         sa.Column(
             'created_at', sa.DateTime, nullable=False, server_default=sa.func.now()

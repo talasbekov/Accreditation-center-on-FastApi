@@ -1,7 +1,10 @@
-from .employer import EmployerBase, EmployerRead, EmployerCreate, EmployerUpdate
-from .division import DivisionBase, DivisionRead, DivisionCreate, DivisionUpdate
-from .management import ManagementBase, ManagementRead, ManagementCreate, ManagementUpdate
-from .department import DepartmentBase, DepartmentRead, DepartmentCreate, DepartmentUpdate
+from .department import DepartmentBase, DepartmentRead, DepartmentCreate, DepartmentUpdate, DepartmentStateRead
+from .management import ManagementBase, ManagementRead, ManagementCreate, ManagementUpdate, ManagementStateRead
+from .division import DivisionBase, DivisionRead, DivisionCreate, DivisionUpdate, DivisionStateRead
 from .rank import RankBase, RankRead, RankCreate, RankUpdate
-from .position import PositionBase, PositionRead, PositionCreate, PositionUpdate
-from .state import StateBase, StateRead, StateCreate, StateUpdate
+from .status import StatusBase, StatusRead, StatusCreate, StatusUpdate
+from .employer import EmployerBase, EmployerRead, EmployerCreate, EmployerUpdate, EmployerRandomCreate, EmployerStateRead
+from .position import PositionBase, PositionRead, PositionCreate, PositionUpdate, PositionStateRead
+from .state import StateBase, StateRead, StateCreate, StateUpdate, StateRandomCreate
+
+

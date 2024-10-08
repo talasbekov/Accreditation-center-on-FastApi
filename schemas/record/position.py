@@ -1,6 +1,6 @@
 from typing import Optional
 
-from schemas import NamedModel
+from schemas import NamedModel, Model
 
 
 class PositionBase(NamedModel):
@@ -17,3 +17,11 @@ class PositionUpdate(PositionBase):
 
 class PositionRead(PositionBase, NamedModel):
     id: int
+
+
+class PositionStateRead(Model):
+    id: int
+    name: Optional[str]
+
+    class Config:
+        orm_mode = True

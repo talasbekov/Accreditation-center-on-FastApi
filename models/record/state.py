@@ -11,7 +11,7 @@ class State(Model):
     management_id = Column(Integer, ForeignKey("managements.id"))
     division_id = Column(Integer, ForeignKey("divisions.id"))
     position_id = Column(Integer, ForeignKey("positions.id"))
-    employer_id = Column(Integer, ForeignKey("employers.id"))
+    employer_id = Column(Integer, ForeignKey("employers.id"), nullable=True)
 
     departments = relationship("Department", back_populates="states")
     managements = relationship("Management", back_populates="states")

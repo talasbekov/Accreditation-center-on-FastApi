@@ -217,7 +217,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=128), nullable=False),
         sa.Column("namekz", sa.String(length=128), nullable=True),
         sa.Column("nameen", sa.String(length=128), nullable=True),
-        sa.Column("city_code", sa.String(length=20), nullable=False, unique=True),
+        sa.Column("city_code", sa.String(length=20), nullable=True, unique=True),
         sa.Column("index", sa.String(length=20), nullable=True),
         sa.Column(
             "created_at", sa.DateTime, nullable=False, server_default=sa.func.now()
@@ -309,7 +309,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=128), nullable=False),
         sa.Column("namekz", sa.String(length=128), nullable=True),
         sa.Column("nameen", sa.String(length=128), nullable=True),
-        sa.Column("doc_code", sa.String(length=20), nullable=False, unique=True),
+        sa.Column("doc_code", sa.String(length=20), nullable=True, unique=True),
         sa.Column(
             "created_at", sa.DateTime, nullable=False, server_default=sa.func.now()
         ),
@@ -337,8 +337,8 @@ def upgrade() -> None:
     op.create_table(
         "countries",
         sa.Column("id", sa.Integer, primary_key=True, index=True),
-        sa.Column("country_code", sa.String(length=20), nullable=False, unique=True),
-        sa.Column("cis_flag", sa.Boolean, nullable=False, default=False),
+        sa.Column("country_code", sa.String(length=20), nullable=True, unique=True),
+        sa.Column("cis_flag", sa.Boolean, nullable=True, default=False),
         sa.Column("country_iso", sa.String(length=20), nullable=True),
         sa.Column("name", sa.String(length=128), nullable=False),
         sa.Column("namekz", sa.String(length=128), nullable=True),
@@ -385,7 +385,7 @@ def upgrade() -> None:
         sa.Column("firstname", sa.String(length=128), nullable=False),
         sa.Column("patronymic", sa.String(length=128), nullable=True),
         sa.Column("birth_date", sa.Date, nullable=True),
-        sa.Column("post", sa.String(length=1024), nullable=True),
+        sa.Column("post", sa.String(length=20), nullable=True),
         sa.Column("doc_series", sa.String(length=128), nullable=True),
         sa.Column("iin", sa.String(length=12), nullable=False, index=True),
         sa.Column("doc_number", sa.String(length=20), nullable=True),
@@ -396,6 +396,7 @@ def upgrade() -> None:
         sa.Column("doc_scan", sa.String(length=1024), nullable=True),
         sa.Column("visit_object", sa.String(length=1024), nullable=True),
         sa.Column("transcription", sa.String(length=128), nullable=True),
+        sa.Column("stick_id", sa.String(length=128), nullable=True),
         sa.Column(
             "created_at", sa.DateTime, nullable=False, server_default=sa.func.now()
         ),
@@ -406,7 +407,7 @@ def upgrade() -> None:
             server_default=sa.func.now(),
             onupdate=sa.func.now(),
         ),
-        sa.Column("sex", sa.Boolean, nullable=False),
+        sa.Column("sex", sa.String(length=128), nullable=True),
         sa.Column(
             "country_id", sa.Integer(), sa.ForeignKey("countries.id"), nullable=False
         ),

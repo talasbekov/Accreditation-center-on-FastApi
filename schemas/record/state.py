@@ -34,6 +34,14 @@ class StateRead(Model):
         orm_mode = True
 
 
+class StateEmployerRead(Model):
+    id: int
+    positions: Optional[PositionStateRead]
+
+    class Config:
+        orm_mode = True
+
+
 class StateRandomCreate(Model):
     department_id: Optional[int]
     management_id: Optional[int]

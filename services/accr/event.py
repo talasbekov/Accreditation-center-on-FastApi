@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, Type
 
 from sqlalchemy.orm import Session
@@ -73,22 +74,22 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
                     ),
                     "countryId": "1000000105",
                     "dateAdd": (
-                        attendee.created_at.isoformat() if attendee.created_at else None
+                        attendee.created_at.isoformat() if attendee.created_at else datetime.now()
                     ),
                     "dateEnd": (
-                        attendee.created_at.isoformat() if attendee.created_at else None
+                        attendee.created_at.isoformat() if attendee.created_at else datetime.now()
                     ),
                     "docBegin": (
-                        attendee.doc_begin.isoformat() if attendee.doc_begin else None
+                        attendee.doc_begin.isoformat() if attendee.doc_begin else datetime.now()
                     ),
                     "docEnd": (
-                        attendee.doc_end.isoformat() if attendee.doc_end else None
+                        attendee.doc_end.isoformat() if attendee.doc_end else datetime.now()
                     ),
                     "docIssue": attendee.doc_issue,
                     "docNumber": attendee.doc_number,
                     "docScan": attendee.doc_scan,
-                    "docSeries": "1",
-                    "docTypeId": "1000000003",
+                    "docSeries": attendee.doc_series,
+                    "docTypeId": attendee.doc_type_id,
                     "firstname": attendee.firstname,
                     "id": str(attendee.id),
                     "iin": attendee.iin,
@@ -96,13 +97,9 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
                     "photo": attendee.photo,
                     "post": attendee.post,
                     "request": str(attendee.request_id),
-                    "sex": (
-                        "10101"
-                        if attendee.sex
-                        else "10000102" if attendee.sex is not None else None
-                    ),
+                    "sex": attendee.sex,
                     "surname": attendee.surname,
-                    "stickId": "1100000022",
+                    "stickId": attendee.stick_id,
                     "transcription": attendee.transcription,
                     "visitObjects": attendee.visit_object,
                 }

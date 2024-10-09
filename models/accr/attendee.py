@@ -1,4 +1,4 @@
-from sqlalchemy import String, Column, ForeignKey, Date, Boolean
+from sqlalchemy import String, Column, ForeignKey, Date
 from sqlalchemy.orm import relationship
 
 
@@ -12,7 +12,7 @@ class Attendee(Model):
     firstname = Column(String(128))
     patronymic = Column(String(128))
     birth_date = Column(Date, nullable=True)
-    post = Column(String(1024))
+    post = Column(String(20))
     doc_series = Column(String(128))
     iin = Column(String(12), index=True, nullable=True)
     doc_number = Column(String(20))
@@ -23,7 +23,8 @@ class Attendee(Model):
     doc_scan = Column(String, nullable=True)  # Путь к файлу вместо ImageField
     visit_object = Column(String(1024))
     transcription = Column(String(128))
-    sex = Column(Boolean, nullable=False)
+    sex = Column(String(128))
+    stick_id = Column(String(128))
 
     country_id = Column(String(), ForeignKey("countries.id"), nullable=True)
     request_id = Column(

@@ -23,7 +23,7 @@ async def get_all(
     *,
     db: Session = Depends(get_db),
     skip: int = 0,
-    limit: int = 100,
+    limit: int = 200,
 ):
     """
     Get all Employers

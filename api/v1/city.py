@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, status
 from fastapi.security import HTTPBearer
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
-
+import pandas as pd
 from core import get_db
+from models.accr import City
 
 from schemas import CityRead, CityUpdate, CityCreate
 from services import city_service
@@ -112,3 +113,32 @@ async def delete(
     """
     Authorize.jwt_required()
     city_service.remove(db, str(id))
+
+
+@router.post("/load_cities")
+async def load_cities(db: Session = Depends(get_db)):
+    # Загрузить файл CSV с указанием разделителя
+    file_path = "./docs/cities.csv"
+    df = pd.read_csv(file_path, sep=";", usecols=[0, 3], names=["city_id", "name"], dtype={"city_id": int, "name": str})
+
+    # Преобразование city_id в стандартный int
+    df["city_id"] = df["city_id"].astype(int)
+
+    # Пройтись по строкам и добавить данные в базу данных
+    for _, row in df.iterrows():
+        city_id = int(row["city_id"])
+        city_name = row["name"]
+
+        # Проверка на существование города перед добавлением
+        existing_city = db.query(City).filter(City.id == city_id).first()
+        if not existing_city:
+            new_city = City(
+                id=city_id,
+                name=city_name
+            )
+            db.add(new_city)
+
+    # Сохранить все изменения
+    db.commit()
+
+    return {"status": "success", "message": "Cities loaded successfully"}

@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, status
 from fastapi.security import HTTPBearer
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
-
+import pandas as pd
 from core import get_db
+from models.accr import Country
 
 from schemas import CountryRead, CountryUpdate, CountryCreate
 from services import country_service
@@ -115,3 +116,31 @@ async def delete(
     """
     Authorize.jwt_required()
     country_service.remove(db, str(id))
+
+
+@router.post("/load_countries")
+async def load_countries(db: Session = Depends(get_db)):
+    # Укажите путь к файлу
+    file_path = "./docs/countries.csv"
+
+    # Считайте файл, выбрав только нужные колонки
+    df = pd.read_csv(file_path, usecols=[0, 3], names=["country_id", "name"], dtype={"country_id": int, "name": str})
+
+    # Преобразуйте country_id в тип int для совместимости
+    df["country_id"] = df["country_id"].astype(int)
+
+    # Пройтись по строкам и добавить в базу данных
+    for _, row in df.iterrows():
+        country_id = int(row["country_id"])
+        country_name = row["name"]
+
+        # Проверка существования страны перед добавлением
+        existing_country = db.query(Country).filter(Country.id == country_id).first()
+        if not existing_country:
+            new_country = Country(id=country_id, name=country_name)
+            db.add(new_country)
+
+    # Сохраните изменения
+    db.commit()
+
+    return {"status": "success", "message": "Countries loaded successfully"}

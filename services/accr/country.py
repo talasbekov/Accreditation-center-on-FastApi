@@ -14,4 +14,6 @@ class CountryService(ServiceBase[Country, CountryCreate, CountryUpdate]):
         return db.query(Country).filter(Country.name == name).first()
 
 
+
+
 country_service = CountryService(Country)

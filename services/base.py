@@ -35,7 +35,7 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return res
 
     def get_multi(
-        self, db: Session, skip: int = 0, limit: int = 100
+        self, db: Session, skip: int = 0, limit: int = 500
     ) -> List[ModelType]:
         return db.query(self.model).offset(skip).limit(limit).all()
 

@@ -4,9 +4,10 @@ from fastapi import APIRouter, Depends, status
 from fastapi.security import HTTPBearer
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
-
+import pandas as pd
 from core import get_db
 
+from models.accr import DocumentType
 from schemas import DocumentTypeRead, DocumentTypeUpdate, DocumentTypeCreate
 from services import document_service
 
@@ -115,3 +116,32 @@ async def delete(
     """
     Authorize.jwt_required()
     document_service.remove(db, str(id))
+
+
+@router.post("/load_documents")
+async def load_documents(db: Session = Depends(get_db)):
+    # Укажите путь к файлу и считайте его с разделителем
+    file_path = "./docs/docs.csv"
+    df = pd.read_csv(file_path, sep=";", usecols=[0, 3], names=["doc_id", "name"], dtype={"doc_id": int, "name": str})
+
+    # Преобразование doc_id в стандартный int
+    df["doc_id"] = df["doc_id"].astype(int)
+
+    # Пройтись по строкам и добавить данные в базу данных
+    for _, row in df.iterrows():
+        doc_id = int(row["doc_id"])
+        doc_name = row["name"]
+
+        # Проверка существования документа перед добавлением
+        existing_document = db.query(DocumentType).filter(DocumentType.id == doc_id).first()
+        if not existing_document:
+            new_document = DocumentType(
+                id=doc_id,
+                name=doc_name
+            )
+            db.add(new_document)
+
+    # Сохранить изменения в базе данных
+    db.commit()
+
+    return {"status": "success", "message": "Documents loaded successfully"}

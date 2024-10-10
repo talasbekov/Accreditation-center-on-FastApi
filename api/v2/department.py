@@ -33,6 +33,24 @@ async def get_all(
     return department_service.get_multi(db, skip, limit)
 
 
+@router.get(
+    "/tree",
+    dependencies=[Depends(HTTPBearer())],
+    response_model=List[DepartmentRead],
+    summary="Get all Departments",
+)
+async def get_all_tree(
+    *,
+    db: Session = Depends(get_db)
+):
+    """
+    Get all Departments
+
+    """
+
+    return department_service.get_all_tree(db)
+
+
 @router.post(
     "",
     dependencies=[Depends(HTTPBearer())],

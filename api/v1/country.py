@@ -1,3 +1,4 @@
+import os
 from typing import List
 
 from fastapi import APIRouter, Depends, status
@@ -120,27 +121,42 @@ async def delete(
 
 @router.post("/load_countries")
 async def load_countries(db: Session = Depends(get_db)):
-    # Укажите путь к файлу
-    file_path = "./docs/countries.csv"
+    # Укажите абсолютный путь к файлу
+    file_path = "/app/api/v1/docs/countries.csv"  # Замените на абсолютный путь, если требуется
 
-    # Считайте файл, выбрав только нужные колонки
-    df = pd.read_csv(file_path, usecols=[0, 3], names=["country_id", "name"], dtype={"country_id": int, "name": str})
+    # Проверяем, существует ли файл
+    if os.path.exists(file_path):
+        try:
+            # Считываем CSV файл, выбираем только нужные колонки
+            df = pd.read_csv(file_path, usecols=[0, 3], names=["country_id", "name"],
+                             dtype={"country_id": int, "name": str})
 
-    # Преобразуйте country_id в тип int для совместимости
-    df["country_id"] = df["country_id"].astype(int)
+            # Преобразуем country_id в int для совместимости
+            df["country_id"] = df["country_id"].astype(int)
 
-    # Пройтись по строкам и добавить в базу данных
-    for _, row in df.iterrows():
-        country_id = int(row["country_id"])
-        country_name = row["name"]
+            # Проходим по строкам и добавляем данные в базу данных
+            for _, row in df.iterrows():
+                country_id = int(row["country_id"])
+                country_name = row["name"]
 
-        # Проверка существования страны перед добавлением
-        existing_country = db.query(Country).filter(Country.id == country_id).first()
-        if not existing_country:
-            new_country = Country(id=country_id, name=country_name)
-            db.add(new_country)
+                # Проверяем на существование страны перед добавлением
+                existing_country = db.query(Country).filter(Country.id == country_id).first()
+                if not existing_country:
+                    new_country = Country(
+                        id=country_id,
+                        name=country_name
+                    )
+                    db.add(new_country)
 
-    # Сохраните изменения
-    db.commit()
+            # Сохраняем все изменения
+            db.commit()
+        except Exception as e:
+            print(f"Ошибка при загрузке файла: {e}")
+            return {"status": "error", "message": f"Ошибка при загрузке файла: {e}"}
+    else:
+        current_dir = os.getcwd()
+        print(f"Файл не найден по пути: {file_path} в текущей директории {current_dir}")
+        return {"status": "error", "message": f"Файл не найден по пути: {file_path}"}
 
     return {"status": "success", "message": "Countries loaded successfully"}
+

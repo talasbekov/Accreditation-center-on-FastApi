@@ -1,7 +1,7 @@
 from typing import Optional
 from sqlalchemy.orm import Session
 
-from models import State  # Предполагается, что у вас есть модель State в models.py
+from models import State
 from schemas import (
     StateCreate,
     StateUpdate,

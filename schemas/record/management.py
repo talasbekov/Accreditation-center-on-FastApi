@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Optional, List
 
 from schemas import NamedModel, Model
-from schemas.record import DepartmentRead
+from schemas.record import DivisionRead
 
 
 class ManagementBase(NamedModel):
@@ -19,9 +19,10 @@ class ManagementUpdate(ManagementBase):
     pass
 
 
-class ManagementRead(ManagementBase, NamedModel):
-    id: int
-    departments: Optional[DepartmentRead]
+class ManagementRead(Model):
+    id: Optional[int]
+    name: Optional[str]
+    divisions: List[DivisionRead] = []
 
     class Config:
         orm_mode = True

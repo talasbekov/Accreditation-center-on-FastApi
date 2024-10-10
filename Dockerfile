@@ -15,6 +15,7 @@ COPY requirements.txt .
 
 # Install dependencies
 RUN pip install -r requirements.txt
+COPY ./api/v1/docs/cities.csv /app/docs/cities.csv
 
 # Copy project
 COPY . .

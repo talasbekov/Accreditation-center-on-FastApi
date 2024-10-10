@@ -48,3 +48,13 @@ class StateRandomCreate(Model):
     division_id: Optional[int]
     position_id: Optional[int]
     employer_id: Optional[int]
+
+
+class StateTreeRead(Model):
+    id: int
+    departments: Optional[DepartmentStateRead]
+    managements: Optional[ManagementStateRead]
+    divisions: Optional[DivisionStateRead]
+
+    class Config:
+        orm_mode = True

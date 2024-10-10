@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from core import get_db
 
 from schemas.record import StateRead, StateUpdate, StateCreate
+from schemas.record.state import StateTreeRead
 from services import state_service
 
 router = APIRouter(prefix="/states", tags=["States"], dependencies=[Depends(HTTPBearer())])
@@ -20,6 +21,26 @@ router = APIRouter(prefix="/states", tags=["States"], dependencies=[Depends(HTTP
     summary="Get all States",
 )
 async def get_all(
+    *,
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 500,
+):
+    """
+    Get all States
+
+    """
+
+    return state_service.get_multi(db, skip, limit)
+
+
+@router.get(
+    "/tree",
+    dependencies=[Depends(HTTPBearer())],
+    response_model=List[StateTreeRead],
+    summary="Get all States",
+)
+async def get_all_of_tree_department(
     *,
     db: Session = Depends(get_db),
     skip: int = 0,

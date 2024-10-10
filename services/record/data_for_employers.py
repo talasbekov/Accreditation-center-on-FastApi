@@ -7,6 +7,7 @@ from schemas import DepartmentCreate, ManagementCreate, DivisionCreate, Position
 from faker import Faker
 import random
 
+
 fake = Faker()
 
 
@@ -242,7 +243,7 @@ class DataForService:
             print(f"Ошибка при создании состояния: {e}")
             return None
 
-    def populate_all_tables(self, db: Session, num_records: int):
+    def populate_all_tables(self, db: Session):
         # Создание департамента
         department_data = DepartmentCreate(name="Седьмой департамент")
         department = self.create_department(db, department_data)
@@ -308,6 +309,8 @@ class DataForService:
             if not status:
                 continue
 
+
+    def create_employers_for_state(self, db: Session):
         last_names = [
             "Жуманов", "Нурланов", "Ахметов", "Султанов", "Оспанов", "Есенгельдинов",
             "Ибраев", "Касымов", "Байжанов", "Тлеубаев", "Ержанов", "Арыстанов",
@@ -389,32 +392,52 @@ class DataForService:
             "Нурланович", "Арманович", "Ерланович", "Алиханович", "Асылович", "Тимурович",
             "Асылбекович", "Нуржанович", "Кайратович", "Жаксылыкович", "Ернарович", "Мадиович"
         ]
+        self.populate_all_tables(db)
 
-        for _ in range(num_records):
-            # Создание сотрудника
+        # Получаем существующие идентификаторы
+        rank_ids = [rank.id for rank in db.query(Rank.id).all()]
+        position_ids = [position.id for position in db.query(Position.id).all()]
+        division_ids = [division.id for division in db.query(Division.id).all()]
+        status_ids = [status.id for status in db.query(Status.id).all()]
+
+        if not (rank_ids and position_ids and division_ids and status_ids):
+            raise ValueError("Необходимо, чтобы таблицы `Rank`, `Position`, `Division` и `Status` имели данные.")
+
+        # Генерация данных для сотрудников
+        for _ in range(150):
             employer_data = EmployerRandomCreate(
                 surname=random.choice(last_names),
                 firstname=random.choice(first_names),
                 patronymic=random.choice(middle_names),
                 sort=fake.random_int(min=1, max=100),
-                rank_id=fake.random_int(min=1, max=10),
-                position_id=fake.random_int(min=1, max=15),
-                division_id=fake.random_int(min=1, max=12),
-                status_id=fake.random_int(min=1, max=10)
+                rank_id=random.choice(rank_ids),  # Только существующие rank_id
+                position_id=random.choice(position_ids),  # Только существующие position_id
+                division_id=random.choice(division_ids),  # Только существующие division_id
+                status_id=random.choice(status_ids)  # Только существующие status_id
             )
             employer = self.create_employer(db, employer_data)
             if not employer:
                 continue
 
-        for _ in range(129):
-            # Создание состояния
+        departments = db.query(Department).first()
+        employer_ids = [employer.id for employer in db.query(Employer.id).all()]
+
+        # Проверяем, достаточно ли employer_id для создания 129 записей
+        if len(employer_ids) < 129:
+            raise ValueError("Недостаточно уникальных работодателей для создания 129 записей.")
+
+        # Выбираем 129 уникальных значений employer_id
+        selected_employer_ids = random.sample(employer_ids, 129)
+
+        for employer_id in selected_employer_ids:
             state_data = StateRandomCreate(
-                department_id=department.id,
+                department_id=departments.id,
                 management_id=fake.random_int(min=1, max=6),
-                division_id=fake.random_int(min=1, max=12),
-                position_id=fake.random_int(min=1, max=15),
-                employer_id=fake.random_int(min=1, max=num_records)
+                division_id=random.choice(division_ids),
+                position_id=random.choice(position_ids),
+                employer_id=employer_id
             )
             self.create_state(db, state_data)
+
 
 data_service = DataForService()

@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/random/datas", tags=["Datass"], dependencies=[Depends(HTTPBearer())])
 
 @router.post("/populate_all/", response_model=dict)
-def populate_all(num_records: int, db: Session = Depends(get_db)):
+def populate_all(db:Session = Depends(get_db)):
     try:
-        data_service.populate_all_tables(db, num_records)
-        return {"status": f"Added {num_records} records to all tables"}
+        data_service.create_employers_for_state(db)
+        return {"status": "Added records to all tables"}
     except Exception as e:
         logger.error(f"Error populating tables: {e}")
         raise HTTPException(status_code=500, detail="Failed to populate tables due to a server error")

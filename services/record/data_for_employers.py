@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
@@ -167,7 +168,6 @@ class DataForService:
                 patronymic=employer_data.patronymic,
                 sort=employer_data.sort,
                 rank_id=employer_data.rank_id,
-                position_id=employer_data.position_id,
                 division_id=employer_data.division_id,
                 status_id=employer_data.status_id
             ).first()
@@ -184,7 +184,6 @@ class DataForService:
                 patronymic=employer_data.patronymic,
                 sort=employer_data.sort,
                 rank_id=employer_data.rank_id,
-                position_id=employer_data.position_id,
                 division_id=employer_data.division_id,
                 status_id=employer_data.status_id
             )
@@ -396,12 +395,14 @@ class DataForService:
 
         # Получаем существующие идентификаторы
         rank_ids = [rank.id for rank in db.query(Rank.id).all()]
-        position_ids = [position.id for position in db.query(Position.id).all()]
         division_ids = [division.id for division in db.query(Division.id).all()]
         status_ids = [status.id for status in db.query(Status.id).all()]
+        # Убедимся, что получаем позиции отдельно, без привязки к state
+        position_ids = [position.id for position in db.query(Position.id).all()]
 
-        if not (rank_ids and position_ids and division_ids and status_ids):
-            raise ValueError("Необходимо, чтобы таблицы `Rank`, `Position`, `Division` и `Status` имели данные.")
+        # Проверяем данные в таблицах Rank, Division и Status
+        if not (rank_ids and division_ids and status_ids):
+            raise ValueError("Необходимо, чтобы таблицы Rank, Division и Status имели данные.")
 
         # Генерация данных для сотрудников
         for _ in range(150):
@@ -410,34 +411,46 @@ class DataForService:
                 firstname=random.choice(first_names),
                 patronymic=random.choice(middle_names),
                 sort=fake.random_int(min=1, max=100),
-                rank_id=random.choice(rank_ids),  # Только существующие rank_id
-                position_id=random.choice(position_ids),  # Только существующие position_id
-                division_id=random.choice(division_ids),  # Только существующие division_id
-                status_id=random.choice(status_ids)  # Только существующие status_id
+                rank_id=random.choice(rank_ids),
+                division_id=random.choice(division_ids),
+                status_id=random.choice(status_ids)
             )
             employer = self.create_employer(db, employer_data)
             if not employer:
                 continue
 
-        departments = db.query(Department).first()
+        # Проверяем department
+        department = db.query(Department).first()
+
+        # Получаем все employer_ids из базы данных после создания записей
         employer_ids = [employer.id for employer in db.query(Employer.id).all()]
 
-        # Проверяем, достаточно ли employer_id для создания 129 записей
-        if len(employer_ids) < 129:
-            raise ValueError("Недостаточно уникальных работодателей для создания 129 записей.")
+        # Создаем словарь для соответствия management_id и division_id
+        management_divisions = defaultdict(list)
+        for management in db.query(Management).all():
+            divisions = db.query(Division.id).filter(Division.management_id == management.id).all()
+            management_divisions[management.id] = [division.id for division in divisions]
 
-        # Выбираем 129 уникальных значений employer_id
-        selected_employer_ids = random.sample(employer_ids, 129)
+        # Создаем записи state, выбирая случайные значения для каждого поля
+        for _ in range(130):  # Цикл точно на 130 итераций
+            management_id = random.choice(list(management_divisions.keys()))
+            division_id = random.choice(management_divisions[management_id])
+            position_id = random.choice(position_ids)
+            employer_id = random.choice(employer_ids)
 
-        for employer_id in selected_employer_ids:
+            # Создаем данные для state
             state_data = StateRandomCreate(
-                department_id=departments.id,
-                management_id=fake.random_int(min=1, max=6),
-                division_id=random.choice(division_ids),
-                position_id=random.choice(position_ids),
+                department_id=department.id,
+                management_id=management_id,
+                division_id=division_id,
+                position_id=position_id,
                 employer_id=employer_id
             )
-            self.create_state(db, state_data)
+
+            # Создаем запись state
+            created_state = self.create_state(db, state_data)
+            if created_state is None:
+                print("Ошибка при создании state, пропуск итерации.")
 
 
 data_service = DataForService()

@@ -10,6 +10,7 @@ class EmployerBase(Model):
     patronymic: Optional[str]
     sort: Optional[int]
     status_id: Optional[int]
+    rank_id: Optional[int]
     division_id: Optional[int]
 
     class Config:

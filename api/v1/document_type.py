@@ -121,42 +121,32 @@ async def delete(
 
 @router.post("/load_documents")
 async def load_documents(db: Session = Depends(get_db)):
-    # Укажите абсолютный путь к файлу
-    file_path = "/app/api/v1/docs/docs.csv"  # Убедитесь, что это правильный путь к файлу
+    file_path = "/app/api/v1/docs/docs.csv"
 
-    # Проверка существования файла
     if os.path.exists(file_path):
         try:
-            # Загружаем CSV-файл с нужными колонками
-            df = pd.read_csv(file_path, sep=";", usecols=[0, 3], names=["doc_id", "name"],
+            # Загрузка CSV-файла с использованием корректного разделителя и нужных столбцов
+            df = pd.read_csv(file_path, sep=",", usecols=[0, 3], names=["doc_id", "name"],
                              dtype={"doc_id": int, "name": str})
-
-            # Преобразуем doc_id в int для совместимости
-            df["doc_id"] = df["doc_id"].astype(int)
 
             # Проходим по строкам и добавляем данные в базу данных
             for _, row in df.iterrows():
-                doc_id = int(row["doc_id"])
+                doc_id = row["doc_id"]
                 doc_name = row["name"]
 
                 # Проверка на существование документа перед добавлением
                 existing_document = db.query(DocumentType).filter(DocumentType.id == doc_id).first()
                 if not existing_document:
-                    new_document = DocumentType(
-                        id=doc_id,
-                        name=doc_name
-                    )
+                    new_document = DocumentType(id=doc_id, name=doc_name)
                     db.add(new_document)
 
-            # Сохраняем все изменения
-            db.commit()
+            db.commit()  # Сохраняем все изменения
         except Exception as e:
             print(f"Ошибка при загрузке файла: {e}")
             return {"status": "error", "message": f"Ошибка при загрузке файла: {e}"}
     else:
-        current_dir = os.getcwd()
-        print(f"Файл не найден по пути: {file_path} в текущей директории {current_dir}")
         return {"status": "error", "message": f"Файл не найден по пути: {file_path}"}
 
     return {"status": "success", "message": "Documents loaded successfully"}
+
 

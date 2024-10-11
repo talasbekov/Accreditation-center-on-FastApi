@@ -122,7 +122,8 @@ async def delete(
 @router.post("/load_countries")
 async def load_countries(db: Session = Depends(get_db)):
     # Укажите абсолютный путь к файлу
-    file_path = "/app/api/v1/docs/countries.csv"  # Замените на абсолютный путь, если требуется
+    # file_path = "/app/api/v1/docs/countries.csv"  # Замените на абсолютный путь, если требуется
+    file_path = "./docs/countries.csv"
 
     # Проверяем, существует ли файл
     if os.path.exists(file_path):

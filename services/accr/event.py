@@ -72,7 +72,7 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
                         if attendee.birth_date
                         else "1992-12-12"
                     ),
-                    "countryId": "1000000105",
+                    "countryId": str(attendee.country_id) if str(attendee.country_id) is not None else "",
                     "dateAdd": (
                         attendee.created_at.isoformat() if attendee.created_at else datetime.now()
                     ),
@@ -85,28 +85,28 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
                     "docEnd": (
                         attendee.doc_end.isoformat() if attendee.doc_end else datetime.now()
                     ),
-                    "docIssue": attendee.doc_issue,
-                    "docNumber": attendee.doc_number,
+                    "docIssue": attendee.doc_issue if attendee.doc_issue is not None else "",
+                    "docNumber": attendee.doc_number if attendee.doc_number is not None else "",
                     "docScan": attendee.doc_scan,
-                    "docSeries": attendee.doc_series,
-                    "docTypeId": attendee.doc_type_id,
+                    "docSeries": attendee.doc_series if attendee.doc_series is not None else "",
+                    "docTypeId": str(attendee.doc_type_id),
                     "firstname": attendee.firstname,
                     "id": str(attendee.id),
-                    "iin": attendee.iin,
-                    "patronymic": attendee.patronymic,
+                    "iin": attendee.iin if attendee.iin is not None else "",
+                    "patronymic": attendee.patronymic if attendee.patronymic is not None else "",
                     "photo": attendee.photo,
-                    "post": attendee.post,
+                    "post": attendee.post if attendee.post is not None else "",
                     "request": str(attendee.request_id),
-                    "sex": attendee.sex,
-                    "surname": attendee.surname,
-                    "stickId": attendee.stick_id,
-                    "transcription": attendee.transcription,
+                    "sex": attendee.sex if attendee.sex is not None else "",
+                    "surname": attendee.surname if attendee.surname is not None else "",
+                    "stickId": attendee.stick_id if attendee.stick_id is not None else "",
+                    "transcription": attendee.transcription if attendee.transcription is not None else "",
                     "visitObjects": attendee.visit_object,
                 }
                 for request in event.requests
                 for attendee in request.attendees
             ],
-            "city_code": event.city_id,
+            "city_code": str(event.city_id),
             "date_end": event.date_end.isoformat(),
             "date_start": event.date_start.isoformat(),
             "event_code": event.event_code,

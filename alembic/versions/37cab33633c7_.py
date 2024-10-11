@@ -11,8 +11,6 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 
-# from sqlalchemy.dialects import postgresql
-
 
 # revision identifiers, used by Alembic.
 revision: str = "37cab33633c7"
@@ -151,9 +149,9 @@ def upgrade() -> None:
         sa.Column('firstname', sa.String(length=128), nullable=False),
         sa.Column('patronymic', sa.String(length=128), nullable=True),
         sa.Column('sort', sa.Integer, nullable=False),
+        sa.Column("photo", sa.String(length=1024), nullable=True),
 
         sa.Column('rank_id', sa.Integer, sa.ForeignKey('ranks.id')),
-        sa.Column('position_id', sa.Integer, sa.ForeignKey('positions.id')),
         sa.Column('division_id', sa.Integer, sa.ForeignKey('divisions.id')),
         sa.Column('status_id', sa.Integer, sa.ForeignKey('statuses.id')),
         sa.Column(
@@ -321,17 +319,6 @@ def upgrade() -> None:
             onupdate=sa.func.now(),
         ),
     )
-
-    # op.create_table(
-    #     'sexes',
-    #     sa.Column('id', sa.Integer, primary_key=True, index=True),
-    #     sa.Column('sex_code', sa.String(length=20), nullable=False, unique=True),
-    #     sa.Column('name', sa.String(length=128), nullable=False),
-    #     sa.Column('namekz', sa.String(length=128), nullable=True),
-    #     sa.Column('nameen', sa.String(length=128), nullable=True),
-    #     sa.Column('created_at', sa.DateTime, nullable=False, server_default=sa.func.now()),
-    #     sa.Column('updated_at', sa.DateTime, nullable=False, server_default=sa.func.now(), onupdate=sa.func.now())
-    # )
 
     # Create table for Country
     op.create_table(

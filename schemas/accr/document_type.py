@@ -7,6 +7,7 @@ class DocumentTypeBase(NamedModel):
 
 
 class DocumentTypeCreate(DocumentTypeBase):
+    id: int
     pass
 
 

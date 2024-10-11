@@ -2,6 +2,7 @@ import base64
 import io
 import json
 import logging
+
 import httpx
 
 from datetime import datetime
@@ -448,89 +449,99 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
         headers = {
             "x-api-key": "Fe6dv1LkLMpY0pqwSuocznfwyGo77upgHYfobtPDM98REHKMWXmW3KW6WKbYZ2t5Q2Fd515wPhIVpYaYt1zRghD3mDB6EQ04XzSD6meoAWVdvZT5vrfM6vCPumCzr55hh"
         }
-        url = "https://185.129.49.135/api/v1/events/2b98b904-3a1b-422c-99bc-71ffe69b01d4/export"
-
-        logging.info("Отправка запроса на целевой API...")
+        count_url = "https://185.129.49.135/api/v1/events/2b98b904-3a1b-422c-99bc-71ffe69b01d4/export"
 
         async with httpx.AsyncClient(verify=False, timeout=3000.0) as client:
             try:
-                response = await client.get(url, headers=headers)
-                logging.info("Ответ получен от целевого API.")
-                response.raise_for_status()
-                data = response.json()
-                attendees = data.get("attendees", [])
-                print(len(attendees))
-                for item in attendees:
+                count_response = await client.get(count_url, headers=headers)
+                count_response.raise_for_status()  # Проверяем статус ответа
 
+                count_data = count_response.text  # Получаем текст ответа
+                print("Count data:", count_data)  # Для отладки
 
-                    try:
-                        # if isinstance(item, str):
-                        #     item = json.loads(item)
-                        #
-                        # if not isinstance(item, dict):
-                        #     logging.warning("Unexpected item type: %s", type(item))
-                        #     continue
+                # Проверяем, является ли count_data числом
+                if count_data.isdigit():
+                    total_pages = int(count_data)  # Преобразуем строку в число
+                else:
+                    logging.error(f"Неверный формат данных: {count_data}")
+                    return {"status": "error", "message": "Неверный формат данных от API"}
 
-                        # Путь для хранения фото
-                        doc_scan_paths, photo_paths = "", ""
+                for page in range(1, total_pages + 1):
+                    url = f"https://185.129.49.135/api/v1/events/2b98b904-3a1b-422c-99bc-71ffe69b01d4/export?page={page}"
+                    response = await client.get(url, headers=headers)
+                    response.raise_for_status()  # Проверяем статус ответа
+                    data = response.json()
+                    attendees = data.get("attendees", [])
+                    print(f"Обработано {len(attendees)} участников на странице {page}.")
 
-                        if item.get("docScan"):
-                            doc_scan_filename = f"{item['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-                            doc_scan_path = Path(f"media/event_1/attendee_docs/{doc_scan_filename}")
-                            doc_scan_path.parent.mkdir(parents=True, exist_ok=True)
-                            doc_scan_path_for_save = Path(f"event_1/attendee_docs/{doc_scan_filename}")
-                            doc_scan_paths = await self.save_base64_image(item["docScan"], doc_scan_path,
-                                                                          doc_scan_path_for_save)
+                    for item in attendees:
+                        try:
+                            # Путь для хранения фото
+                            doc_scan_paths, photo_paths = "", ""
 
-                        if item.get("photo"):
-                            photo_filename = f"{item['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-                            photo_path = Path(f"media/event_1/attendee_photos/{photo_filename}")
-                            photo_path.parent.mkdir(parents=True, exist_ok=True)
-                            photo_path_for_save = Path(f"event_1/attendee_photos/{photo_filename}")
-                            photo_paths = await self.save_base64_image(item["photo"], photo_path, photo_path_for_save)
+                            if item.get("docScan"):
+                                doc_scan_filename = f"{item['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+                                doc_scan_path = Path(f"media/event_1/attendee_docs/{doc_scan_filename}")
+                                doc_scan_path.parent.mkdir(parents=True, exist_ok=True)
+                                doc_scan_path_for_save = Path(f"event_1/attendee_docs/{doc_scan_filename}")
+                                doc_scan_paths = await self.save_base64_image(item["docScan"], doc_scan_path,
+                                                                              doc_scan_path_for_save)
 
-                        birth_date = parser.parse(item.get("birthDate", "1992-12-12")).date()
+                            if item.get("photo"):
+                                photo_filename = f"{item['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
+                                photo_path = Path(f"media/event_1/attendee_photos/{photo_filename}")
+                                photo_path.parent.mkdir(parents=True, exist_ok=True)
+                                photo_path_for_save = Path(f"event_1/attendee_photos/{photo_filename}")
+                                photo_paths = await self.save_base64_image(item["photo"], photo_path,
+                                                                           photo_path_for_save)
 
-                        item_data = {
-                            "surname": item["surname"],
-                            "firstname": item["firstname"],
-                            "patronymic": item["patronymic"],
-                            "birth_date": birth_date,
-                            "post": item["post"],
-                            "doc_series": (
-                                item["docSeries"][:12] if item["docSeries"] else None
-                            ),
-                            "iin": item["iin"][:12] if item["iin"] else None,
-                            "doc_number": item["docNumber"],
-                            "doc_begin": item["docBegin"],
-                            "doc_end": item["docEnd"],
-                            "doc_issue": item["docIssue"],
-                            "photo": photo_paths if item.get("photo") else "",
-                            "doc_scan": doc_scan_paths if item.get("docScan") else "",
-                            "visit_object": item["visitObjects"],
-                            "transcription": item["transcription"],
-                            "sex": item["sexId"],
-                            "stick_id": item["stickId"],
-                            "country_id": int(item["countryId"]),
-                            "request_id": 1,
-                            "doc_type_id": int(item["docTypeId"]),
-                            "id": item["id"],
-                        }
+                            birth_date = parser.parse(item.get("birthDate", "1992-12-12")).date()
 
-                        # Запись в БД
-                        attendee = db.query(Attendee).filter(Attendee.id == item["id"]).first()
+                            # Добавляем проверку длины для iin
+                            iin = item["iin"]
+                            if iin and len(iin) != 12:
+                                logging.error(f"Меньше или больше цифр в ИИН у attendee_id: {item['id']}")
+                                continue  # Пропускаем запись, если длина iin не 12
 
-                        if not attendee:
-                            attendee = Attendee(**item_data)
-                            db.add(attendee)
-                        else:
-                            for key, value in item_data.items():
-                                setattr(attendee, key, value)
+                            item_data = {
+                                "surname": item["surname"],
+                                "firstname": item["firstname"],
+                                "patronymic": item["patronymic"],
+                                "birth_date": birth_date,
+                                "post": item["post"],
+                                "doc_series": (
+                                    item["docSeries"][:12] if item["docSeries"] else None
+                                ),
+                                "iin": iin,
+                                "doc_number": item["docNumber"],
+                                "doc_begin": item["docBegin"],
+                                "doc_end": item["docEnd"],
+                                "doc_issue": item["docIssue"],
+                                "photo": photo_paths if item.get("photo") else "",
+                                "doc_scan": doc_scan_paths if item.get("docScan") else "",
+                                "visit_object": item["visitObjects"],
+                                "transcription": item["transcription"],
+                                "sex": item["sexId"],
+                                "stick_id": item["stickId"],
+                                "country_id": int(item["countryId"]),
+                                "request_id": 1,
+                                "doc_type_id": int(item["docTypeId"]),
+                                "id": item["id"],
+                            }
 
-                        db.commit()
-                    except Exception as e:
-                        logging.error("Ошибка при обработке записи %s: %s", str(e))
-                        db.rollback()
+                            # Запись в БД
+                            attendee = db.query(Attendee).filter(Attendee.id == item["id"]).first()
+                            if not attendee:
+                                attendee = Attendee(**item_data)
+                                db.add(attendee)
+                            else:
+                                for key, value in item_data.items():
+                                    setattr(attendee, key, value)
+
+                            db.commit()
+                        except Exception as e:
+                            logging.error("Ошибка при обработке записи %s: %s", str(e))
+                            db.rollback()
 
                 return data
             except httpx.RequestError as e:

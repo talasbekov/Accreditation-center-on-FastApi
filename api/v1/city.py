@@ -119,8 +119,7 @@ async def delete(
 @router.post("/load_cities")
 async def load_cities(db: Session = Depends(get_db)):
     # Определяем путь к файлу
-    # file_path = '/app/api/v1/docs/cities.csv'  # Замените на абсолютный путь для проверки
-    file_path = './docs/cities.csv'
+    file_path = '/app/api/v1/docs/cities.csv'  # Замените на абсолютный путь для проверки
 
     # Проверяем существование файла
     if os.path.exists(file_path):

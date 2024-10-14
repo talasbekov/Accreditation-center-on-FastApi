@@ -481,9 +481,9 @@ class AttendeeService(ServiceBase[Attendee, AttendeeCreate, AttendeeUpdate]):
 
                             if item.get("docScan"):
                                 doc_scan_filename = f"{item['id']}_{datetime.now().strftime('%Y%m%d%H%M%S')}.png"
-                                doc_scan_path = Path(f"media/event_1/attendee_docs/{doc_scan_filename}")
+                                doc_scan_path = Path(f"media/event_1/attendee_documents/{doc_scan_filename}")
                                 doc_scan_path.parent.mkdir(parents=True, exist_ok=True)
-                                doc_scan_path_for_save = Path(f"event_1/attendee_docs/{doc_scan_filename}")
+                                doc_scan_path_for_save = Path(f"event_1/attendee_documents/{doc_scan_filename}")
                                 doc_scan_paths = await self.save_base64_image(item["docScan"], doc_scan_path,
                                                                               doc_scan_path_for_save)
 

@@ -272,21 +272,43 @@ class DataForService:
                 if not division:
                     continue
 
-        for _ in range(15):
+        positions = [
+            "Сотрудник охраны 3-категории",
+            "Сотрудник охраны 2-категории",
+            "Сотрудник охраны 1-категории",
+            "Офицер охраны",
+            "Старший офицер охраны",
+            "Старший офицер", "инспектор",
+            "Старший инспектор",
+            "Начальник отдела",
+        ]
+        for post in positions:
             # Создание должности
-            position_data = PositionCreate(name=random.choice(["офицер охраны", "старший офицер охраны", "старший офицер", "инспектор", "старший инспектор", "начальник отдела"]))
+            position_data = PositionCreate(name=post)
             position = self.create_position(db, position_data)
             if not position:
                 continue
 
-        for _ in range(10):
+        ranks = ["лейтенант", "старший лейтенант", "капитан", "майор", "подполковник", "полковник"]
+        for rnk in ranks:
             # Создание звания
-            rank_data = RankCreate(name=random.choice(["лейтенант", "старший лейтенант", "капитан", "майор", "подполковник", "полковник"]))
+            rank_data = RankCreate(name=rnk)
             rank = self.create_rank(db, rank_data)
             if not rank:
                 continue
 
-        for _ in range(10):
+        statuses = [
+            "в строю",
+            "в отпуске",
+            "на больничном",
+            "в командировке",
+            "прикомандирован",
+            "откомандирован",
+            "на дежурстве",
+            "после дежурства",
+            "на соревновании",
+        ]
+        for status in statuses:
             # Создание статуса с произвольной датой окончания
             start_date = fake.date_this_year()
 
@@ -299,8 +321,9 @@ class DataForService:
             # Выбираем случайную дату в диапазоне следующего месяца
             end_date = fake.date_between_dates(date_start=next_month_start, date_end=next_month_end)
 
+
             status_data = StatusCreate(
-                name=random.choice(["в строю", "болен", "отпуск"]),
+                name=status,
                 start_date=start_date,
                 end_date=end_date
             )

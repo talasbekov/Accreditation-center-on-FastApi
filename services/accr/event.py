@@ -74,10 +74,10 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
                     ),
                     "countryId": str(attendee.country_id) if str(attendee.country_id) is not None else "",
                     "dateAdd": (
-                        attendee.created_at.isoformat() if attendee.created_at else datetime.now()
+    attendee.created_at.strftime("%Y-%m-%d %H:%M:%S.%f+00:00") if attendee.created_at else datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f+00:00")
                     ),
                     "dateEnd": (
-                        attendee.created_at.isoformat() if attendee.created_at else datetime.now()
+    attendee.created_at.strftime("%Y-%m-%d") if attendee.created_at else datetime.now().strftime("%Y-%m-%d")
                     ),
                     "docBegin": (
                         attendee.doc_begin.isoformat() if attendee.doc_begin else datetime.now()
@@ -91,15 +91,15 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
                     "docSeries": attendee.doc_series if attendee.doc_series is not None else "",
                     "docTypeId": str(attendee.doc_type_id),
                     "firstname": attendee.firstname,
-                    "id": str(attendee.id),
+                    "id": int(attendee.id) + 120000,
                     "iin": attendee.iin if attendee.iin is not None else "",
                     "patronymic": attendee.patronymic if attendee.patronymic is not None else "",
                     "photo": attendee.photo,
                     "post": attendee.post if attendee.post is not None else "",
-                    "request": str(attendee.request_id),
-                    "sex": attendee.sex if attendee.sex is not None else "",
-                    "surname": attendee.surname if attendee.surname is not None else "",
+                    "request": int(attendee.request_id) + 15000,
+                    "sexId": attendee.sex if attendee.sex is not None else "",
                     "stickId": attendee.stick_id if attendee.stick_id is not None else "",
+                    "surname": attendee.surname if attendee.surname is not None else "",
                     "transcription": attendee.transcription if attendee.transcription is not None else "",
                     "visitObjects": attendee.visit_object,
                 }
@@ -110,10 +110,10 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
             "date_end": event.date_end.isoformat(),
             "date_start": event.date_start.isoformat(),
             "event_code": event.event_code,
-            "id": event.id,
+            "id": event.id + 600,
             "name_eng": event_name_eng,
             "name_kaz": event.name if hasattr(event, "name") else None,
-            "name": event.name if hasattr(event, "name") else None,
+            "name_rus": event.name if hasattr(event, "name") else None,
         }
 
         # Return the JSON response

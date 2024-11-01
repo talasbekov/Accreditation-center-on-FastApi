@@ -1,117 +1,131 @@
-from typing import Type
-from sqlalchemy.orm import Session
 from models import (
-    Employer,
-    Division,
+    Employer, State
 )  # Предполагается, что у вас есть модель Employer в models.py
 from schemas import (
     EmployerCreate,
     EmployerUpdate,
 )  # Предполагается, что у вас есть схемы создания и обновления событий
+
+from services import user_service
+
+from pathlib import Path
+from typing import List
+
+from fastapi import UploadFile, HTTPException
+from PIL import Image
+from io import BytesIO
+
+from sqlalchemy.orm import Session, joinedload
+
 from services.base import ServiceBase
+from schemas.record.employer import EmployerDataBulkUpdate
+
 
 
 class EmployerService(ServiceBase[Employer, EmployerCreate, EmployerUpdate]):
 
-    # Количество сотрудников по штату всего департамента
-    def get_count_emp_by_state(self):
-        return 136
+    async def upload_only_photos(
+            self, db: Session, employer_ids: List[int], photos: List[UploadFile]
+    ) -> List[Employer]:
+        employers = []
 
-    # Количество сотрудников по списку всего департамента
-    def get_count_emp_by_list(self, db: Session):
-        return db.query(self.model).count()
+        for employer_id, photo in zip(employer_ids, photos):
+            employer = db.query(Employer).filter(Employer.id == employer_id).first()
+            if not employer:
+                print(f"Работодатель с employer_id {employer_id} не найден")
+                continue
 
-    # Количество вакантных мест в департаменте
-    def get_count_vacant(self, db: Session):
-        state_count = self.get_count_emp_by_state()
-        list_count = self.get_count_emp_by_list(db)
+            file_location = Path(f"media/images/employer_photos/{employer.id}_{employer.surname}.jpg")
+            file_location.parent.mkdir(parents=True, exist_ok=True)
 
-        if not isinstance(state_count, int):
-            raise ValueError(
-                f"get_count_emp_by_state() returned {type(state_count)}, expected int."
-            )
+            # Чтение и обработка изображения
+            file_contents = await photo.read()
+            image = Image.open(BytesIO(file_contents))
 
-        if not isinstance(list_count, int):
-            raise ValueError(
-                f"get_count_emp_by_list() returned {type(list_count)}, expected int."
-            )
+            # Проверка режима изображения
+            if image.mode == "RGBA":
+                image = image.convert("RGB")  # Преобразуем в RGB
 
-        return state_count - list_count
+            # Сохранение изображения
+            image.save(file_location)
 
-    # Количество сотрудников по статусу всего департамента
-    def get_count_emp_by_status(self, db: Session, status: str):
-        return db.query(self.model).filter(self.model.status == status).count()
+            # Обновляем путь к фотографии
+            employer.photo = str(file_location)
+            db.add(employer)
+            employers.append(employer)
 
-    # # Количество сотрудников по статусу всего департамента
-    # def get_count_emp_by_all_status(self, db: Session):
-    #     statuses = []
-    #     for status in EmpStatusEnum:
-    #         emp_count_by_all_status = (
-    #             db.query(self.model).filter(self.model.status == status).count()
-    #         )
-    #         statuses.append(emp_count_by_all_status)
-    #     return sum(statuses)
+        # Сохраняем изменения в БД
+        db.commit()
 
-    # Количество сотрудников которые в строю всего департамента
-    def get_count_emp_in_service(self, db: Session):
-        return self.get_count_emp_by_list(db) - self.get_count_emp_by_all_status(db)
+        # Обновляем данные работодателей
+        for employer in employers:
+            db.refresh(employer)
 
-    # Все сотрудники по статусу, например: на больничном, и т.д.
-    def get_emp_by_status(self, db: Session, status: str) -> list[Type[Employer]]:
-        return db.query(self.model).filter(self.model.status == status).all()
+        return employers
 
-    # Количество сотрудников по штату в управлении
-    def get_count_emp_by_state_from_directorate(self, db: Session, division_id: int):
-        directorate = db.query(Division).filter(Division.id == division_id).first()
-        return int(directorate.count_state)
+    async def upload_only_data(
+            self, db: Session, employer_data_list: List[EmployerDataBulkUpdate]
+    ) -> List[Employer]:
+        employers = []
 
-    # Количество сотрудников по списку в управлении
-    def get_count_emp_by_list_from_directorate(self, db: Session, division_id: int):
-        return db.query(self.model).filter(self.model.division_id == division_id).count()
+        for employer_data in employer_data_list:
+            employer = db.query(Employer).filter(Employer.id == employer_data.employer_id).first()
+            if not employer:
+                print(f"Работодатель с employer_id {employer_data.employer_id} не найден")
+                continue
 
-    # Количество вакантных мест в управлении
-    def get_count_vacant_in_directorate(self, db: Session, division_id: int):
-        return self.get_count_emp_by_state_from_directorate(
-            db, division_id
-        ) - self.get_count_emp_by_list_from_directorate(db, division_id)
+            # Обновляем поля работодателя
+            if employer_data.rank_id is not None:
+                employer.rank_id = employer_data.rank_id
+            if employer_data.status_id is not None:
+                employer.status_id = employer_data.status_id
+            if employer_data.sort is not None:
+                employer.sort = employer_data.sort
 
-    # # Количество сотрудников по статусу всего департамента
-    # def get_count_emp_by_all_status_from_directorate(self, db: Session, division_id: int):
-    #     statuses = []
-    #     for status in EmpStatusEnum:
-    #         emp_count_by_all_status = (
-    #             db.query(self.model)
-    #             .filter(self.model.status == status, self.model.division_id == division_id)
-    #             .count()
-    #         )
-    #         statuses.append(emp_count_by_all_status)
-    #     return sum(statuses)
+            db.add(employer)
+            employers.append(employer)
 
-    # Количество сотрудников по статусу в управлении
-    def get_count_emp_by_status_from_directorate(
-        self, db: Session, status: str, division_id: int
-    ):
-        return (
-            db.query(self.model)
-            .filter(self.model.status == status, self.model.division_id == division_id)
-            .count()
-        )
+        # Сохраняем изменения в БД
+        db.commit()
 
-    # Количество сотрудников которые в строю в управлении
-    def get_count_emp_in_service_from_directorate(self, db: Session, division_id: int):
-        return self.get_count_emp_by_list_from_directorate(
-            db, division_id
-        ) - self.get_count_emp_by_all_status_from_directorate(db, division_id)
+        # Обновляем данные работодателей
+        for employer in employers:
+            db.refresh(employer)
 
-    # Все сотрудники по статусу в управлении
-    def get_emp_by_status_from_directorate(
-        self, db: Session, status: str, division_id: int
-    ):
-        return (
-            db.query(self.model)
-            .filter(self.model.status == status, self.model.division_id == division_id)
-            .all()
-        )
+        return employers
+
+    async def get_employers_by_management(self, db: Session, user_id: int):
+        # Получаем пользователя
+        user = user_service.get_by_id(db, user_id)
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Получаем работодателя
+        employer = employer_service.get_by_id(db, user.employer_id)
+
+        if not employer:
+            raise HTTPException(status_code=404, detail="Employer not found")
+
+        # Получаем state для данного пользователя
+        state = db.query(State).filter(State.employer_id == user.employer_id).first()
+
+        if not state:
+            raise HTTPException(status_code=404, detail="State not found for the employer")
+
+        # Получаем работодателей, относящихся к тому же управлению
+        employers = db.query(Employer).join(State).options(
+            joinedload(Employer.states)  # Это загружает связанные объекты сразу
+        ).filter(
+            State.management_id == state.management_id,
+            State.division_id.isnot(None)
+        ).all()
+        for emp in employers:
+            print(emp.states)
+            for st in emp.states:
+                print(st.id)
+
+        return employers
 
 
 employer_service = EmployerService(Employer)

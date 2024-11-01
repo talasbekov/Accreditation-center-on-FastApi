@@ -10,6 +10,7 @@ from .state import router as state_router
 from .position import router as position_router
 from .rank import router as rank_router
 from .data_for_employers import router as data_router
+from .status import router as status_router
 
 
 router = APIRouter(prefix="/v2")
@@ -24,3 +25,4 @@ router.include_router(state_router)
 router.include_router(position_router)
 router.include_router(rank_router)
 router.include_router(data_router)
+router.include_router(status_router)

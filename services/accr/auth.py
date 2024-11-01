@@ -86,7 +86,6 @@ class AuthService:
         user_claims = {
             "role": str(user.workplace),
             "email": str(user.email),
-            "permissions": permissions,
         }
 
         # Создание токена доступа

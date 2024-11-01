@@ -1,15 +1,18 @@
+import json
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, UploadFile, File, Form, HTTPException
 from fastapi.security import HTTPBearer
+from fastapi_jwt_auth import AuthJWT
+from pydantic.tools import parse_obj_as
 
 from sqlalchemy.orm import Session
 
 from core import get_db
 
 from schemas.record import StateRead, StateUpdate, StateCreate
-from schemas.record.state import StateTreeRead
-from services import state_service
+from schemas.record.employer import EmployerDataBulkUpdate, EmployerStateRead
+from services import state_service, employer_service
 
 router = APIRouter(prefix="/states", tags=["States"], dependencies=[Depends(HTTPBearer())])
 
@@ -21,26 +24,6 @@ router = APIRouter(prefix="/states", tags=["States"], dependencies=[Depends(HTTP
     summary="Get all States",
 )
 async def get_all(
-    *,
-    db: Session = Depends(get_db),
-    skip: int = 0,
-    limit: int = 500,
-):
-    """
-    Get all States
-
-    """
-
-    return state_service.get_multi(db, skip, limit)
-
-
-@router.get(
-    "/tree",
-    dependencies=[Depends(HTTPBearer())],
-    response_model=List[StateTreeRead],
-    summary="Get all States",
-)
-async def get_all_of_tree_department(
     *,
     db: Session = Depends(get_db),
     skip: int = 0,
@@ -135,3 +118,115 @@ async def delete(
     """
 
     state_service.remove(db, str(id))
+
+
+@router.get(
+    "/count",
+    dependencies=[Depends(HTTPBearer())],
+    summary="Get all States",
+)
+async def get_all_counts(
+    *,
+    db: Session = Depends(get_db),
+    Authorize: AuthJWT = Depends()
+):
+    """
+    Get all States
+
+    """
+    Authorize.jwt_required()
+    user_id = Authorize.get_jwt_subject()
+
+    return state_service.get_count_of_state(db, user_id)
+
+
+@router.get(
+    "/in/management",
+    dependencies=[Depends(HTTPBearer())],
+    response_model=List[EmployerStateRead],
+    summary="Get all Employers by Management",
+)
+async def get_employers_by_management(
+        *,
+        db: Session = Depends(get_db),
+        Authorize: AuthJWT = Depends()
+):
+    """
+    Get all States
+    """
+    Authorize.jwt_required()
+    user_id = Authorize.get_jwt_subject()
+    return await employer_service.get_employers_by_management(db, user_id)
+
+
+@router.post(
+    "/in/management/upload/photo",
+    dependencies=[Depends(HTTPBearer())],
+    summary="Upload photos for Employers",
+)
+async def upload_photo(
+        *,
+        db: Session = Depends(get_db),
+        photos: List[UploadFile] = File(...),
+        employer_ids: str = Form(...),  # Ожидаем employer_ids как строку через Form
+        Authorize: AuthJWT = Depends()
+):
+    """
+    Upload photos for specific Employers
+    """
+    Authorize.jwt_required()
+
+    # Логируем полученные данные для отладки
+    print(f"Received employer_ids (raw): {employer_ids}")
+
+    # Преобразуем строку employer_ids в список целых чисел
+    try:
+        # Разделяем строку по запятым и преобразуем каждое значение в int
+        employer_ids_list = [int(e_id.strip()) for e_id in employer_ids.split(",")]
+
+        # Проверяем, пуст ли список
+        if not employer_ids_list:
+            raise ValueError("Employer IDs list is empty")
+
+    except ValueError as e:
+        # Логирование ошибки для отладки
+        print(f"Error converting employer_ids: {str(e)}")
+        raise HTTPException(status_code=422, detail="One or more employer_ids are not valid integers")
+
+    # Логирование для отладки
+    print(f"Processed employer_ids: {employer_ids_list}")
+    print(f"Received {len(photos)} photos")
+
+    # Проверяем соответствие количества фотографий и employer_ids
+    if len(photos) != len(employer_ids_list):
+        raise HTTPException(status_code=400, detail="The number of employers and photos does not match")
+
+    # Передаем фотографии в сервис для обработки
+    return await employer_service.upload_only_photos(db, employer_ids_list, photos)
+
+
+@router.post(
+    "/in/management/upload/data",
+    dependencies=[Depends(HTTPBearer())],
+    summary="Upload data for Employers",
+)
+async def upload_data(
+        *,
+        db: Session = Depends(get_db),
+        employer_data: str = Form(...),  # Ожидаем данные как строку через Form
+        Authorize: AuthJWT = Depends()
+):
+    """
+    Upload data for all Employers in a management group
+    """
+    Authorize.jwt_required()
+
+    # Преобразуем строку employer_data в список объектов
+    try:
+        employer_data_list = parse_obj_as(List[EmployerDataBulkUpdate], json.loads(employer_data))
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=422, detail="Invalid JSON format in employer_data")
+
+    # Передаем данные в сервис для обновления работодателей
+    return await employer_service.upload_only_data(db, employer_data_list)
+

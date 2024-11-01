@@ -1,7 +1,7 @@
 from typing import Optional
 
 from schemas import Model
-from schemas.record import EmployerStateRead, DepartmentStateRead, ManagementStateRead, DivisionStateRead, PositionStateRead
+from schemas.record import DepartmentStateRead, ManagementStateRead, DivisionStateRead, PositionStateRead, EmployerStateRead
 
 class StateBase(Model):
     department_id: Optional[int]
@@ -23,7 +23,7 @@ class StateUpdate(StateBase):
 
 
 class StateRead(Model):
-    id: int
+    id: Optional[int]
     departments: Optional[DepartmentStateRead]
     managements: Optional[ManagementStateRead]
     divisions: Optional[DivisionStateRead]
@@ -37,6 +37,7 @@ class StateRead(Model):
 class StateEmployerRead(Model):
     id: int
     positions: Optional[PositionStateRead]
+    employers: Optional[EmployerStateRead]
 
     class Config:
         orm_mode = True

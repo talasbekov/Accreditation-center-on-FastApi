@@ -1,3 +1,8 @@
+from io import BytesIO
+from pathlib import Path
+from PIL import Image
+import aiofiles
+from fastapi import HTTPException
 from collections import defaultdict
 from datetime import datetime, timedelta
 
@@ -445,21 +450,30 @@ class DataForService:
         # Проверяем department
         department = db.query(Department).first()
 
-        # Получаем все employer_ids из базы данных после создания записей
-        employer_ids = [employer.id for employer in db.query(Employer.id).all()]
-
         # Создаем словарь для соответствия management_id и division_id
         management_divisions = defaultdict(list)
         for management in db.query(Management).all():
             divisions = db.query(Division.id).filter(Division.management_id == management.id).all()
             management_divisions[management.id] = [division.id for division in divisions]
 
+        # Получаем все employer_ids из базы данных после создания записей
+        employer_ids = [employer.id for employer in db.query(Employer.id).all()]
+
         # Создаем записи state, выбирая случайные значения для каждого поля
+        employer_index = 0  # Инициализация индекса
+
         for _ in range(130):  # Цикл точно на 130 итераций
             management_id = random.choice(list(management_divisions.keys()))
             division_id = random.choice(management_divisions[management_id])
             position_id = random.choice(position_ids)
-            employer_id = random.choice(employer_ids)
+
+            # Берем employer_id по индексу и увеличиваем индекс
+            employer_id = employer_ids[employer_index]
+            employer_index += 1
+
+            # Если индекс выходит за пределы списка, сбрасываем его на 0
+            if employer_index >= len(employer_ids):
+                employer_index = 0
 
             # Создаем данные для state
             state_data = StateRandomCreate(
@@ -474,6 +488,55 @@ class DataForService:
             created_state = self.create_state(db, state_data)
             if created_state is None:
                 print("Ошибка при создании state, пропуск итерации.")
+
+    async def upload_photos_from_directory(self, directory: str, db: Session):
+        # Проверяем, существует ли директория
+        photo_directory = Path(directory)
+        if not photo_directory.exists() or not photo_directory.is_dir():
+            raise HTTPException(status_code=400, detail=f"Directory '{directory}' does not exist or is not a directory")
+
+        # Обрабатываем каждый файл в директории
+        for photo_path in photo_directory.iterdir():
+            if photo_path.is_file() and photo_path.suffix in [".jpg", ".png"]:
+                try:
+                    # Извлекаем id работодателя из названия файла
+                    employer_id = int(photo_path.stem.split('_')[0])  # Получаем всё, что до символа '_'
+
+                    # Ищем работодателя по id
+                    employer = db.query(Employer).filter(Employer.id == employer_id).first()
+                    if not employer:
+                        print(f"Работодатель с id {employer_id} не найден")
+                        continue
+
+                    # Используем aiofiles для асинхронного чтения файлов
+                    async with aiofiles.open(photo_path, 'rb') as file:
+                        file_contents = await file.read()
+
+                    # Открываем и проверяем изображение через PIL
+                    image = Image.open(BytesIO(file_contents))
+
+                    # Если изображение в формате RGBA, преобразуем его в RGB
+                    if image.mode == "RGBA":
+                        image = image.convert("RGB")
+
+                    # Путь для сохранения изображения
+                    save_path = Path(f"media/images/employer_photos/{employer.id}_{employer.surname}.jpg")
+                    save_path.parent.mkdir(parents=True, exist_ok=True)
+
+                    # Сохраняем изображение (синхронно, т.к. PIL не поддерживает асинхронность)
+                    image.save(save_path)
+
+                    # Обновляем запись в БД
+                    employer.photo = str(save_path)
+                    db.add(employer)
+                except ValueError:
+                    print(f"Не удалось извлечь id работодателя из имени файла {photo_path.name}")
+                    continue
+
+        # Сохраняем изменения в БД
+        db.commit()
+
+        return {"message": "Photos uploaded successfully"}
 
 
 data_service = DataForService()

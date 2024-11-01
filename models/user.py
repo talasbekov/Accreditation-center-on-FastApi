@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String
+from sqlalchemy import Boolean, Column, Integer, String, ForeignKey
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import relationship
 
@@ -18,8 +18,10 @@ class User(NamedModel):
     last_signed_at = Column(TIMESTAMP(timezone=True), nullable=True)
     login_count = Column(Integer, default=0)
 
+    employer_id = Column(Integer, ForeignKey("employers.id"))
     requests = relationship("Request", back_populates="users")
     events = relationship(
         "Event", secondary=user_event_association, back_populates="users"
     )
     permissions = relationship("Permission", back_populates="user")
+    employers = relationship("Employer", back_populates="users")

@@ -1,8 +1,16 @@
 import logging
+import os
 from typing import Optional, Any, List
 from fastapi import HTTPException
 from pydantic.tools import parse_obj_as
 from sqlalchemy.orm import Session
+
+from docx import Document
+from docx.shared import Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
+from io import BytesIO
 
 from models import State, Employer, Status
 from schemas import (
@@ -171,6 +179,66 @@ class StateService(ServiceBase[State, StateCreate, StateUpdate]):
             "on_seconded": on_seconded,
             "out_seconded": out_seconded
         }
+
+    def create_word_report_from_template(self, db: Session, user_id: int):
+        """
+        Создание отчета Word с подстановкой данных из функции get_count_of_state.
+        """
+        # Получаем данные из функции get_count_of_state
+        data = self.get_count_of_state(db, user_id)
+
+        file_path = './template.docx'
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Файл {file_path} не найден. Пожалуйста, проверьте путь к файлу.")
+
+        doc = Document(file_path)
+
+        # Заполнение таблицы значениями из data
+        for table in doc.tables:
+            row_idx = 4  # Индекс строки, с которой начинается заполнение
+
+            row = table.rows[row_idx]
+            values = [
+                str(data.get("state_count", 0)),
+                str(data.get("by_list_count", 0)),
+                str(data.get("inline_count", 0)),
+                str(data.get("vacant_count", 0)),
+                str(data.get("on_leave", 0)),
+                str(data.get("business_trip_count", 0)),
+                str(data.get("on_sick_leave_count", 0)),
+                str(data.get("on_duty_count", 0)),
+                str(data.get("after_duty", 0)),
+                str(data.get("on_studying_count", 0)),
+                str(data.get("on_seconded", 0)),
+                str(data.get("out_seconded", 0))
+            ]
+
+            # Заполнение ячеек таблицы данными
+            for cell_idx, value in enumerate(values, start=2):
+                cell = row.cells[cell_idx]
+                cell.text = value
+
+                # Настройка выравнивания и стиля текста
+                paragraph = cell.paragraphs[0]
+                paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                run = paragraph.runs[0]
+                run.font.size = Pt(12)
+                run.font.name = 'Times New Roman'
+
+                # Вертикальное выравнивание
+                tc = cell._element
+                tcPr = tc.get_or_add_tcPr()
+                tcVAlign = OxmlElement('w:vAlign')
+                tcVAlign.set(qn('w:val'), 'bottom')
+                tcPr.append(tcVAlign)
+
+            row_idx += 1
+
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+
+        return buffer
 
 
 state_service = StateService(State)

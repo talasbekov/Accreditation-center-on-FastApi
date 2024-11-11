@@ -1,7 +1,7 @@
 import json
 from typing import List
 
-from fastapi import APIRouter, Depends, status, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, status, UploadFile, File, Form, HTTPException, Response
 from fastapi.security import HTTPBearer
 from fastapi_jwt_auth import AuthJWT
 from pydantic.tools import parse_obj_as
@@ -229,4 +229,19 @@ async def upload_data(
 
     # Передаем данные в сервис для обновления работодателей
     return await employer_service.upload_only_data(db, employer_data_list)
+
+
+# FastAPI эндпоинт для выгрузки документа
+@router.get("/download-word", dependencies=[Depends(HTTPBearer())])
+def download_word_report(db: Session = Depends(get_db), Authorize: AuthJWT = Depends()):
+    Authorize.jwt_required()
+    user_id = Authorize.get_jwt_subject()
+    # Создаем Word документ
+    word_file = state_service.create_word_report_from_template(db, user_id)
+
+    # Отправляем документ как файл
+    return Response(content=word_file.read(),
+                    media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    headers={"Content-Disposition": "attachment; filename=report.docx"})
+
 

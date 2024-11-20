@@ -1,6 +1,6 @@
 from typing import Optional
 from sqlalchemy.orm import Session
-from models.accr import (
+from models import (
     DocumentType,
 )  # Предполагается, что у вас есть модель DocumentType в models.py
 from schemas import (

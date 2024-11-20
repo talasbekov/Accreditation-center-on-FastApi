@@ -1,8 +1,47 @@
 {% extends "base.html" %}
 
+{% block head %}
+<style>
+/* Адаптивность таблицы и изображений */
+@media (max-width: 768px) {
+    .bsb-table-xl {
+        font-size: 12px;
+    }
+    .img-thumbnail {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* Общие стили */
+.img-thumbnail {
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.img-icon {
+    cursor: pointer;
+}
+
+.table-bordered {
+    border: 1px solid #dee2e6;
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid #dee2e6;
+}
+
+.text-center {
+    text-align: center;
+}
+
+</style>
+{% endblock %}
+
 {% block content %}
 
-<!-- Table 1 - Bootstrap Brain Component -->
+<!-- Table Section -->
 <section class="py-3 py-md-5">
   <div class="container">
     <div class="row justify-content-center">
@@ -12,8 +51,8 @@
             <h5 class="card-title widget-card-title mb-4">Участники одной заявки</h5>
             <p>{{ attendees|count }} участников</p>
             <div class="table-responsive bg-light">
-              <table class="table table-borderless bsb-table-xl text-nowrap align-middle m-0 bg-light">
-                <thead>
+              <table class="table table-bordered text-nowrap align-middle m-0">
+                <thead class="table-light">
                   <tr>
                     <th>Фото</th>
                     <th>Документ</th>
@@ -25,17 +64,21 @@
                     <th>Действие</th>
                   </tr>
                 </thead>
-                {% for attendee in attendees %}
                 <tbody>
+                  {% for attendee in attendees %}
                   <tr>
-                    <td>
-                      <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImage('{{ url_for('media', path=attendee.photo) if attendee.photo else '/path/to/default/image.jpg' }}')">
-                        <img src="{{ url_for('media', path=attendee.photo) if attendee.photo else '/path/to/default/image.jpg' }}" width="70" height="70">
+                    <td class="text-center">
+                      <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal"
+                         onclick="showImage('{{ url_for('media', path=attendee.photo) if attendee.photo else '/path/to/default/image.jpg' }}')">
+                        <img src="{{ url_for('media', path=attendee.photo) if attendee.photo else '/path/to/default/image.jpg' }}"
+                             class="img-thumbnail" width="70" height="70">
                       </a>
                     </td>
-                    <td>
-                      <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal" onclick="showImage('{{ url_for('media', path=attendee.doc_scan) if attendee.doc_scan else '/path/to/default/image.jpg' }}')">
-                        <img src="{{ url_for('media', path=attendee.doc_scan) if attendee.doc_scan else '/path/to/default/image.jpg' }}" width="70" height="70">
+                    <td class="text-center">
+                      <a href="#" data-bs-toggle="modal" data-bs-target="#imageModal"
+                         onclick="showImage('{{ url_for('media', path=attendee.doc_scan) if attendee.doc_scan else '/path/to/default/image.jpg' }}')">
+                        <img src="{{ url_for('media', path=attendee.doc_scan) if attendee.doc_scan else '/path/to/default/image.jpg' }}"
+                             class="img-thumbnail" width="70" height="70">
                       </a>
                     </td>
                     <td>{{ attendee.surname }} {{ attendee.firstname }} {{ attendee.patronymic }}</td>
@@ -43,17 +86,17 @@
                     <td>{{ attendee.birth_date }}</td>
                     <td>{{ attendee.post }}</td>
                     <td>{{ attendee.visit_object }}</td>
-                    <td>
+                    <td class="text-center">
                       <a href="/api/client/attendee/update/attendee_{{ attendee.id }}">
-                          <img src="{{ url_for('static', path='/img/update.svg') }}" width="30" height="30">
+                          <img src="{{ url_for('static', path='/img/update.svg') }}" class="img-icon" width="30" height="30" alt="Update">
                       </a>
                       <a href="#" onclick="deleteAttendee('{{ attendee.id }}')">
-                          <img src="{{ url_for('static', path='/img/remove.svg') }}" width="30" height="30">
+                          <img src="{{ url_for('static', path='/img/remove.svg') }}" class="img-icon" width="30" height="30" alt="Delete">
                       </a>
                     </td>
                   </tr>
+                  {% endfor %}
                 </tbody>
-                {% endfor %}
               </table>
             </div>
           </div>
@@ -63,7 +106,7 @@
   </div>
 </section>
 
-<!-- Modal for displaying images -->
+<!-- Modal for Images -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -72,7 +115,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body text-center">
-        <img id="modalImage" src="" alt="Image" class="img-fluid">
+        <img id="modalImage" src="" alt="Изображение" class="img-fluid">
       </div>
     </div>
   </div>
@@ -85,7 +128,6 @@
                 method: 'DELETE'
             }).then(response => {
                 if (response.ok) {
-                    // Обновление страницы или другие действия после успешного удаления
                     location.reload();
                 } else {
                     alert('Ошибка при удалении участника');

@@ -7,7 +7,7 @@ from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 import pandas as pd
 from core import get_db
-from models.accr import Country
+from models import Country
 
 from schemas import CountryRead, CountryUpdate, CountryCreate
 from services import country_service
@@ -122,8 +122,8 @@ async def delete(
 @router.post("/load_countries")
 async def load_countries(db: Session = Depends(get_db)):
     # Укажите абсолютный путь к файлу
-    # file_path = "/app/api/v1/docs/countries.csv"  # Замените на абсолютный путь, если требуется
-    file_path = "./docs/countries.csv"
+    file_path = "/app/api/v1/docs/countries.csv"  # Замените на абсолютный путь, если требуется
+    # file_path = "./docs/countries.csv"
 
     # Проверяем, существует ли файл
     if os.path.exists(file_path):

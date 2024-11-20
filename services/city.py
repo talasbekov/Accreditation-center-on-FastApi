@@ -1,6 +1,6 @@
 from typing import Optional
 from sqlalchemy.orm import Session
-from models.accr import City  # Предполагается, что у вас есть модель City в models.py
+from models import City  # Предполагается, что у вас есть модель City в models.py
 from schemas import (
     CityCreate,
     CityUpdate,

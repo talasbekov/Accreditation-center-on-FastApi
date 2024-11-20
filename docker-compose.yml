@@ -16,7 +16,7 @@ services:
     volumes:
       - ./.data:/var/lib/postgresql/data
     networks:
-      - backend-dev
+      - shared_network
 #    command: bash -c "ruff check . --ignore E712,E711 --exclude ./alembic,__init__.py,./venv && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --log-config log.ini --workers ${NUMBER_OF_WORKERS}"
   accreditation-center:
     platform: linux/amd64
@@ -30,7 +30,7 @@ services:
       - .:/app
       - /app/venv
     networks:
-      - backend-dev
+      - shared_network
     depends_on:
         postgres:
           condition: service_healthy
@@ -40,5 +40,6 @@ services:
           memory: 4g
 
 networks:
-  backend-dev:
-      driver: bridge
+  shared_network:
+    external: true
+

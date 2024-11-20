@@ -7,7 +7,7 @@ from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.orm import Session
 import pandas as pd
 from core import get_db
-from models.accr import City
+from models import City
 
 from schemas import CityRead, CityUpdate, CityCreate
 from services import city_service

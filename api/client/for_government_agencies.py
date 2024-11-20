@@ -12,7 +12,6 @@ from schemas import (
     GovAttendeeRequest,
     RequestCreate,
     AttendeeCreate,
-    GovAttendeeRead,
 )
 from services import (
     attendee_service,
@@ -28,7 +27,7 @@ router = APIRouter(prefix="/gov", tags=["GovAttendees"])
 
 @router.get(
     "/data",
-    response_model=List[GovAttendeeRead],
+    response_model=List[GovAttendeeRequest],
     summary="Get all Attendees by request",
 )
 async def get_all(
@@ -45,7 +44,7 @@ async def get_all(
     doc_types = document_service.get_multi(db, skip, limit)
     attendees = []
     for event, country, doc_type in zip(events, countries, doc_types):
-        attendee = GovAttendeeRead(
+        attendee = GovAttendeeRequest(
             events=[event], countries=[country], doc_types=[doc_type]
         )
         attendees.append(attendee)

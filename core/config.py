@@ -18,13 +18,15 @@ class Settings(BaseSettings):
     templates = Jinja2Templates(directory="./templates")
 
     AUTHJWT_SECRET_KEY: str
-    # AUTHJWT_TOKEN_LOCATION: set = {"cookies"}
+
     REFRESH_TOKEN_EXPIRES_IN: int
     ACCESS_TOKEN_EXPIRES_IN: int
     JWT_ALGORITHM: str
-    # authjwt_cookie_csrf_protect: bool = False  # отключите, если CSRF не используется
-    # authjwt_cookie_samesite: str = "lax"  # для работы с кросс-доменными запросами
-    # authjwt_cookie_secure: bool = False  # установите в True для HTTPS
+
+    authjwt_cookie_csrf_protect: bool = False  # отключите, если CSRF не используется
+    authjwt_cookie_samesite: str = "lax"  # для работы с кросс-доменными запросами
+    authjwt_cookie_secure: bool = False  # установите в True для HTTPS
+    AUTHJWT_TOKEN_LOCATION: set = {"cookies"}
 
     DEBUG: bool = True
     SENTRY_DSN: str = None

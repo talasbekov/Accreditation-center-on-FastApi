@@ -1,8 +1,6 @@
 from typing import Optional
 from sqlalchemy.orm import Session
-from models.accr import (
-    Category,
-)  # Предполагается, что у вас есть модель Category в models.py
+from models import Category # Предполагается, что у вас есть модель Category в models.py
 from schemas import (
     CategoryCreate,
     CategoryUpdate,

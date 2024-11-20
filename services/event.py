@@ -3,7 +3,7 @@ from typing import Optional, Type
 
 from sqlalchemy.orm import Session
 
-from models.accr import Event  # Предполагается, что у вас есть модель Event в models.py
+from models import Event  # Предполагается, что у вас есть модель Event в models.py
 from schemas import (
     EventCreate,
     EventUpdate,

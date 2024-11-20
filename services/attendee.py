@@ -23,7 +23,7 @@ import hashlib
 import requests
 from sqlalchemy.orm import Session
 
-from models.accr import Attendee, Request
+from models import Attendee, Request
 from schemas import AttendeeCreate, AttendeeUpdate
 from services.base import ServiceBase
 from core.config import configs

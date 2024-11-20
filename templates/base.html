@@ -7,14 +7,43 @@
     <!-- Bootstrap CSS -->
     <link rel="icon" href="{{ url_for('static', path='/img/sgork.png') }}" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        /* Адаптивная стилизация Navbar */
+        .navbar-brand img {
+            margin-right: 8px;
+        }
+
+        .offcanvas-title {
+            font-size: 1.5rem;
+        }
+
+        /* Адаптивные настройки шрифтов */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1rem;
+            }
+            .offcanvas-title {
+                font-size: 1.25rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .navbar-brand {
+                font-size: 0.9rem;
+            }
+            .offcanvas-body ul {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<!-- Navbar 1 - Bootstrap Brain Component -->
+<!-- Navbar -->
 <nav class="navbar navbar-expand-md bg-light bsb-navbar bsb-navbar-hover bsb-navbar-caret shadow-sm">
   <div class="container">
-    <a class="navbar-brand" href="/api/client/events">
-      <img src="{{ url_for('static', path='/img/sgork.png') }}" width="30" height="34">     Аккредитационный центр
+    <a class="navbar-brand d-flex align-items-center" href="/api/client/events">
+      <img src="{{ url_for('static', path='/img/sgork.png') }}" width="30" height="34" alt="Logo"> Аккредитационный центр
     </a>
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
@@ -23,15 +52,17 @@
     </button>
     <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
       <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+        <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Меню</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
       <div class="offcanvas-body">
         <ul class="navbar-nav justify-content-end flex-grow-1">
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="/" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ user.email }}</a>
-            <ul class="dropdown-menu border-0 shadow bsb-zoomIn" aria-labelledby="accountDropdown">
-              {% if user.admin == true %}
+            <a class="nav-link dropdown-toggle" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ user.email }}
+            </a>
+            <ul class="dropdown-menu border-0 shadow" aria-labelledby="accountDropdown">
+              {% if user.admin %}
                 <li><a class="dropdown-item" href="/api/client/users">Все пользователи</a></li>
                 <li><a class="dropdown-item" href="/api/client/events/create">Создать мероприятие</a></li>
                 <li><a class="dropdown-item" href="/api/client/users/create">Добавить пользователя</a></li>
@@ -46,8 +77,11 @@
   </div>
 </nav>
 
-{% block content %}<p>Logged in as: {{ user_email }}</p>
+{% block content %}
+<p>Logged in as: {{ user_email }}</p>
 {% endblock %}
+
+<!-- Logout Script -->
 <script>
     document.getElementById('logout-link').addEventListener('click', function(event) {
         event.preventDefault();
@@ -63,32 +97,34 @@
         });
     });
 </script>
+
+<!-- CSRF Example Script -->
 <script>
-  function getCsrfToken() {
-  return document.cookie.split('; ')
-    .find(row => row.startsWith('csrf_access_token'))
-    .split('=')[1];
-}
+    function getCsrfToken() {
+        return document.cookie.split('; ')
+            .find(row => row.startsWith('csrf_access_token'))
+            ?.split('=')[1];
+    }
 
-function sendAuthenticatedRequest() {
-  const csrfToken = getCsrfToken();
+    function sendAuthenticatedRequest() {
+        const csrfToken = getCsrfToken();
 
-  fetch('/protected', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-TOKEN': csrfToken
-    },
-    body: JSON.stringify({ data: 'example' })
-  })
-  .then(response => response.json())
-  .then(data => console.log(data))
-  .catch(error => console.error('Error:', error));
-}
-
+        fetch('/protected', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({ data: 'example' })
+        })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error('Error:', error));
+    }
 </script>
-    <!-- Bootstrap Bundle with Popper JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
 </body>
 </html>

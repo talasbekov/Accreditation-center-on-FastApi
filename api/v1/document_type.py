@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 import pandas as pd
 from core import get_db
 
-from models.accr import DocumentType
+from models import DocumentType
 from schemas import DocumentTypeRead, DocumentTypeUpdate, DocumentTypeCreate
 from services import document_service
 

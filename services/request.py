@@ -1,6 +1,6 @@
 from typing import Optional
 from sqlalchemy.orm import Session
-from models.accr import Request  # Предполагается, что у вас есть модель Request в models.py
+from models import Request  # Предполагается, что у вас есть модель Request в models.py
 from schemas import (
     RequestCreate,
     RequestUpdate,

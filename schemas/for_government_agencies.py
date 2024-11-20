@@ -1,9 +1,6 @@
 from typing import List
 
-from schemas import Model
-from schemas.accr.country import GovCountryRead
-from schemas.accr import GovDocumentTypeRead
-from schemas.accr.event import GovEventRead
+from schemas import Model, GovCountryRead, GovDocumentTypeRead, GovEventRead
 
 
 class GovAttendeeRead(Model):

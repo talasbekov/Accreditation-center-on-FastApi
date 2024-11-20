@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from exceptions import NotFoundException, ForbiddenException
-from models.accr import Permission, PermissionType
+from models import Permission, PermissionType
 from schemas import PermissionCreate, PermissionUpdate
 
 from services.base import ServiceBase

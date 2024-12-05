@@ -1,33 +1,32 @@
 import logging
 
-from sqlalchemy.engine import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import SQLAlchemyError
-from fastapi import HTTPException
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from .config import configs
 
-SQLALCHEMY_DATABASE_URL = f"postgresql://{configs.POSTGRES_USER}:{configs.POSTGRES_PASSWORD}@{configs.POSTGRES_HOSTNAME}:{configs.DATABASE_PORT}/{configs.POSTGRES_DB}"
+SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{configs.POSTGRES_USER}:{configs.POSTGRES_PASSWORD}@{configs.POSTGRES_HOSTNAME}:{configs.DATABASE_PORT}/{configs.POSTGRES_DB}"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, pool_size=20, echo=configs.SQLALCHEMY_ECHO
+engine = create_async_engine(
+    SQLALCHEMY_DATABASE_URL, echo=configs.SQLALCHEMY_ECHO
 )
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Создаем фабрику асинхронных сессий с использованием async_sessionmaker
+AsyncSessionLocal = async_sessionmaker(
+    engine, expire_on_commit=False
+)
 
 Base = declarative_base()
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-        db.commit()
-    except SQLAlchemyError as e:
-        logging.debug(e)
-        db.rollback()
-        raise HTTPException(status_code=400, detail=str(e))
-    finally:
-        if db:
-            db.close()
+# Асинхронная функция получения сессии базы данных
+async def get_db():
+    async with AsyncSessionLocal() as db:
+        try:
+            yield db
+        except Exception as e:
+            await db.rollback()
+            logging.error(f"Произошла ошибка при работе с базой данных: {e}")
+            raise
+        finally:
+            await db.close()
             logging.debug("Database connection closed.")

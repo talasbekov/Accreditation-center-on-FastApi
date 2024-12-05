@@ -3,7 +3,8 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from fastapi import HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from core import Base
 from exceptions import NotFoundException
@@ -16,45 +17,46 @@ UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
 class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def __init__(self, model: Type[ModelType]):
-        """_summary_
-
-        Base Service class with default methods to Create, Read, Update, Delete (CRUD).
-        """
-
+        """Base Service class with default methods to Create, Read, Update, Delete (CRUD)."""
         self.model = model
 
-    def get(self, db: Session, id: Any) -> Optional[ModelType]:
-        return db.query(self.model).filter(self.model.id == id).first()
+    async def get(self, db: AsyncSession, id: Any) -> Optional[ModelType]:
+        stmt = select(self.model).where(self.model.id == id)
+        result = await db.execute(stmt)
+        return result.scalars().first()
 
-    def get_by_id(self, db: Session, id: Any) -> ModelType:
-        res = self.get(db, id)
+    async def get_by_id(self, db: AsyncSession, id: Any) -> ModelType:
+        res = await self.get(db, id)
         if res is None:
             raise NotFoundException(
                 detail=f"{self.model.__name__} with id {id} not found!"
             )
         return res
 
-    def get_multi(
-            self, db: Session, skip: int = 0, limit: int = 500
+    async def get_multi(
+            self, db: AsyncSession, skip: int = 0, limit: int = 500
     ) -> List[ModelType]:
-        return db.query(self.model).order_by(self.model.id).offset(skip).limit(limit).all()
+        stmt = select(self.model).order_by(self.model.id).offset(skip).limit(limit)
+        result = await db.execute(stmt)
+        return result.scalars().all()
 
-    def create(
+    async def create(
         self,
-        db: Session,
+        db: AsyncSession,
         obj_in: Union[CreateSchemaType, Dict[str, Any]],
-        model: ModelType = None,
+        model: Type[ModelType] = None,
     ) -> ModelType:
         if model is None:
             model = self.model
         obj_in_data = jsonable_encoder(obj_in)
         db_obj = model(**obj_in_data)  # type: ignore
         db.add(db_obj)
-        db.flush()
+        await db.flush()
+        await db.refresh(db_obj)
         return db_obj
 
-    def update(
-        self, db: Session, *, db_obj: ModelType, obj_in: UpdateSchemaType
+    async def update(
+        self, db: AsyncSession, *, db_obj: ModelType, obj_in: Union[UpdateSchemaType, Dict[str, Any]]
     ) -> ModelType:
         obj_data = jsonable_encoder(db_obj)
         print(obj_data, "obj")
@@ -62,23 +64,23 @@ class ServiceBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             update_data = obj_in
         else:
             update_data = obj_in.dict(exclude_unset=True)
-        for field in obj_data:
-            if field in update_data:
-                setattr(db_obj, field, update_data[field])
+        for field in update_data:
+            setattr(db_obj, field, update_data[field])
         print(db_obj, "obj2")
         db.add(db_obj)
-        db.flush()
+        await db.flush()
+        await db.refresh(db_obj)
         return db_obj
 
-    def remove(self, db: Session, id: str) -> ModelType:
-        obj = self.get_by_id(db, id)
+    async def remove(self, db: AsyncSession, id: str) -> ModelType:
+        obj = await self.get_by_id(db, id)
         print(obj, "remove_obj")
         if not obj:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail=f"{obj.name} not found"
             )
-        db.delete(obj)
-        db.flush()
+        await db.delete(obj)
+        await db.flush()
         return obj
 
     def transliterate(self, text: str) -> str:

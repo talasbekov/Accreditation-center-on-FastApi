@@ -9,3 +9,4 @@ from .document_type import GovDocumentTypeRead, DocumentTypeBase, DocumentTypeRe
 from .request import RequestBase, RequestRead, RequestCreate, RequestUpdate
 from .event import EventBase, EventRead, EventCreate, EventUpdate, EventReadWithAttendies
 from .auth import LoginForm, RegistrationForm
+from .face import FaceBlackListBase, FaceBlackListRead, FaceBlackListCreate, FaceBlackListUpdate

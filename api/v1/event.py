@@ -131,7 +131,7 @@ async def delete(
     response_model=EventReadWithAttendies,
     summary="Get Event with Attendees",
 )
-async def get_by_id_with_attedees(
+async def get_by_id_with_attendees(
     *, db: Session = Depends(get_db), id: str, Authorize: AuthJWT = Depends()
 ):
     """
@@ -141,3 +141,22 @@ async def get_by_id_with_attedees(
     """
     Authorize.jwt_required()
     return event_service.get_event_with_attendees(db, str(id))
+
+@router.get(
+    "/user/",
+    dependencies=[Depends(HTTPBearer())],
+    response_model=EventReadWithAttendies,
+    summary="Get Event with Attendees",
+)
+async def get_event_by_user(
+    *, db: Session = Depends(get_db), Authorize: AuthJWT = Depends()
+):
+    """
+    Get Event by id
+
+    - **id**: UUID - required.
+    """
+    Authorize.jwt_required()
+    # Get user ID from the JWT token's subject
+    user_id = Authorize.get_jwt_subject()
+    return event_service.get_event_by_user(db, user_id)

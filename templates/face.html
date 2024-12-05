@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Видео и Распознавание Лиц</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 20px;
+        }
+        canvas {
+            border: 1px solid black;
+            display: block;
+            margin: 0 auto;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Видеопоток и Распознавание Лиц</h1>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <div id="status">Статус: Подключение...</div>
+    <script>
+        const canvas = document.querySelector("#canvas");
+        const ctx = canvas.getContext("2d");
+        const statusDiv = document.querySelector("#status");
+
+        function updateStatus(message, color = "#333") {
+            statusDiv.textContent = message;
+            statusDiv.style.color = color;
+        }
+
+        // Настройка WebSocket для видеопотока
+        const videoSocket = new WebSocket("wss://localhost:8000/face/ws/video");
+        const recognizeSocket = new WebSocket("wss://localhost:8000/face/ws/recognize");
+
+        // Обработчик получения данных видеопотока
+        videoSocket.onmessage = (event) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                };
+            };
+            reader.onerror = (err) => {
+                console.error("Ошибка при чтении изображения:", err);
+            };
+            reader.readAsDataURL(new Blob([event.data], { type: "image/jpeg" }));
+        };
+
+        videoSocket.onopen = () => {
+            console.log("Видеопоток подключен.");
+            updateStatus("Статус: Видеопоток активен.");
+        };
+
+        videoSocket.onerror = (error) => {
+            console.error("Ошибка видеопотока:", error);
+            updateStatus("Статус: Ошибка подключения видеопотока.", "orange");
+        };
+
+        videoSocket.onclose = () => {
+            console.log("Видеопоток отключен.");
+            updateStatus("Статус: Видеопоток отключен.", "gray");
+        };
+
+        // Настройка WebSocket для распознавания лиц
+        recognizeSocket.onmessage = (event) => {
+            let data;
+            try {
+                data = JSON.parse(event.data);
+            } catch (e) {
+                console.error("Ошибка парсинга данных:", e);
+                return;
+            }
+
+            if (data && data.alert) {
+                alert(data.alert);
+                updateStatus("Статус: Обнаружено лицо из черного списка!", "red");
+            } else {
+                console.log(data.status);
+                updateStatus("Статус: Лицо не обнаружено.", "green");
+            }
+        };
+
+        recognizeSocket.onopen = () => {
+            console.log("Распознавание подключено.");
+        };
+
+        recognizeSocket.onerror = (error) => {
+            console.error("Ошибка распознавания:", error);
+            updateStatus("Статус: Ошибка подключения распознавания.", "orange");
+        };
+
+        recognizeSocket.onclose = () => {
+            console.log("Распознавание отключено.");
+            updateStatus("Статус: Распознавание отключено.", "gray");
+        };
+    </script>
+</body>
+</html>

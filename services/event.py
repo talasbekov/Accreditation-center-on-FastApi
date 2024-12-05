@@ -149,5 +149,16 @@ class EventService(ServiceBase[Event, EventCreate, EventUpdate]):
 
         return event_read
 
+    async def get_event_by_user(self, db: Session, user_id: int):
+        # Предполагая, что у вас есть идентификатор пользователя user_id
+        user = db.query(self.model).filter(self.model.id==user_id).first()
+        if user:
+            events = user.events
+            print(events)
+            for event in events:
+                print(event.name)  # или любые другие свойства события
+        else:
+            print("Пользователь не найден.")
+
 
 event_service = EventService(Event)

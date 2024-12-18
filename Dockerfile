@@ -1,4 +1,4 @@
-FROM python:3.10-slim-buster
+FROM python:3.14.0a1-slim-bookworm
 
 # Install dependencies
 RUN pip install --upgrade pip
